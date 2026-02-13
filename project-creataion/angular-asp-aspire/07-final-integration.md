@@ -1,252 +1,201 @@
-# Final Integration and Testing
+# Step 7 — Final Integration and Testing
 
-This guide completes the project setup by ensuring all components work together seamlessly.
+> **AI Agent Instruction:** This step wires everything together and validates the complete project. Run each verification in order. If any check fails, troubleshoot before proceeding. This is the most critical step — do not skip any validation.
 
-## Step 1: Update Solution File
+---
 
-Ensure your `{{PROJECT_NAME}}.sln` contains all projects:
+## 7.1 — Verify the Solution File Contains All Projects
 
-```
-Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "{{PROJECT_NAME}}.API", "src\{{PROJECT_NAME}}.API\{{PROJECT_NAME}}.API.csproj", "{GUID1}"
-EndProject
-Project("{9092AA53-FB77-4645-B42D-1CCCA6BD08BD}") = "{{PROJECT_NAME}}.UI", "src\{{PROJECT_NAME}}.UI\{{PROJECT_NAME}}.UI.esproj", "{GUID2}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppHost", "tools\AppHost\AppHost.csproj", "{GUID3}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceDefaults", "tools\ServiceDefaults\ServiceDefaults.csproj", "{GUID4}"
-EndProject
-Global
-	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Debug|Any CPU = Debug|Any CPU
-		Release|Any CPU = Release|Any CPU
-	EndGlobalSection
-	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{GUID1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{GUID1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{GUID1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{GUID1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{GUID2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{GUID2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{GUID3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{GUID3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{GUID3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{GUID3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{GUID4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{GUID4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{GUID4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{GUID4}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
-EndGlobal
-```
-
-## Step 2: Install All Dependencies
+Run from the solution root:
 
 ```bash
-# From solution root, restore all .NET dependencies
+cd "{{PROJECT_FULL_PATH}}"
+dotnet sln list
+```
+
+**Expected output — all 4 projects must be listed:**
+```
+src/{{PROJECT_NAME}}.API/{{PROJECT_NAME}}.API.csproj
+src/{{PROJECT_NAME}}.UI/{{PROJECT_NAME}}.UI.esproj
+tools/AppHost/AppHost.csproj
+tools/ServiceDefaults/ServiceDefaults.csproj
+```
+
+> **AI Agent:** If any project is missing, add it with:
+> ```bash
+> dotnet sln add "<path-to-missing-project>"
+> ```
+
+## 7.2 — Restore All Dependencies
+
+```bash
+cd "{{PROJECT_FULL_PATH}}"
+
+# .NET dependencies
 dotnet restore
 
-# Navigate to UI project and install npm dependencies
-cd src/{{PROJECT_NAME}}.UI
+# npm dependencies (if not already installed in Step 4)
+cd "src/{{PROJECT_NAME}}.UI"
 npm install
-cd ../..
+cd "../.."
 ```
 
-## Step 3: Build Entire Solution
+## 7.3 — Build the Entire Solution
 
 ```bash
-# Build all .NET projects
+cd "{{PROJECT_FULL_PATH}}"
 dotnet build
-
-# Verify no build errors
-echo "Build should complete successfully"
 ```
 
-## Step 4: Trust HTTPS Certificates
+**Expected:** Build succeeds with exit code 0 and **zero errors**. Warnings are acceptable.
+
+> **AI Agent:** If the build fails, read the error output carefully. Common issues:
+> - Missing project references → verify `.csproj` and `.esproj` `<ProjectReference>` paths
+> - Missing NuGet packages → run `dotnet restore`
+> - Missing npm packages → run `npm install` in the UI directory
+
+## 7.4 — Trust HTTPS Development Certificates
 
 ```bash
-# Trust the .NET development certificates
 dotnet dev-certs https --trust
+```
 
-# For Angular HTTPS development
-cd src/{{PROJECT_NAME}}.UI
+> **AI Agent:** This may prompt the user for their system password (macOS) or show a certificate dialog (Windows). Let the user know this is expected.
+
+**Generate Angular HTTPS certificate:**
+```bash
+cd "{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI"
 node aspnetcore-https.js
-cd ../..
+cd "../.."
 ```
 
-## Step 5: Test Individual Components
+## 7.5 — Create Development Start Scripts
 
-### Test API Project
-```bash
-cd src/{{PROJECT_NAME}}.API
-dotnet run
+**macOS / Linux — create `{{PROJECT_FULL_PATH}}/start-dev.sh`:**
 
-# Should start on https://localhost:7055
-# Test with: curl https://localhost:7055/weatherforecast
-# Stop with Ctrl+C
-cd ../..
-```
-
-### Test Angular Project
-```bash
-cd src/{{PROJECT_NAME}}.UI
-npm start
-
-# Should start on https://localhost:4200
-# Open browser to verify Angular loads
-# API calls to /api/* should proxy to backend
-# Stop with Ctrl+C
-cd ../..
-```
-
-## Step 6: Test Full Integration with AppHost
-
-```bash
-cd tools/AppHost
-dotnet run
-
-# This should:
-# 1. Start the Aspire dashboard at https://localhost:17055
-# 2. Start the API project
-# 3. Start the Angular UI project
-# 4. Show all services as healthy in dashboard
-```
-
-## Step 7: Verify Complete Integration
-
-### 1. Dashboard Verification
-- Open https://localhost:17055 (Aspire Dashboard)
-- Verify all services show as "Running" and healthy
-- Check logs for any errors
-
-### 2. API Verification
-- API accessible at https://localhost:7055
-- Swagger/OpenAPI available at https://localhost:7055/swagger (in development)
-- WeatherForecast endpoint returns data
-
-### 3. UI Verification
-- Angular app accessible at https://localhost:4200
-- App loads without errors
-- API proxy configuration working (check browser network tab)
-
-### 4. Full Stack Test
-- Make API call from Angular to backend
-- Verify CORS configuration allows requests
-- Check that hot reload works for both frontend and backend
-
-## Step 8: Create Development Scripts (Optional)
-
-Create `start-dev.ps1` (Windows PowerShell):
-```powershell
-# Start development environment
-Write-Host "Starting {{PROJECT_NAME}} Development Environment..."
-Set-Location "tools/AppHost"
-dotnet run
-```
-
-Create `start-dev.sh` (macOS/Linux):
 ```bash
 #!/bin/bash
-# Start development environment
 echo "Starting {{PROJECT_NAME}} Development Environment..."
-cd tools/AppHost
+cd "$(dirname "$0")/tools/AppHost"
 dotnet run
 ```
 
-## Step 9: Final Project Structure Verification
+Then make it executable:
+```bash
+chmod +x "{{PROJECT_FULL_PATH}}/start-dev.sh"
+```
 
-Your completed project should have this structure:
+**Windows — create `{{PROJECT_FULL_PATH}}/start-dev.ps1`:**
+
+```powershell
+Write-Host "Starting {{PROJECT_NAME}} Development Environment..."
+Set-Location "$PSScriptRoot\tools\AppHost"
+dotnet run
+```
+
+## 7.6 — Test the Full Stack (Integration Test)
+
+Start the AppHost:
+```bash
+cd "{{PROJECT_FULL_PATH}}/tools/AppHost"
+dotnet run
+```
+
+> **AI Agent:** This command starts ALL services. Wait for the output to show that services are running. This is a blocking command — it will keep running until stopped with Ctrl+C.
+
+**While the AppHost is running, verify each endpoint:**
+
+| Endpoint                                                  | What to Check                                    |
+|-----------------------------------------------------------|--------------------------------------------------|
+| `https://localhost:{{DASHBOARD_HTTPS_PORT}}`              | Aspire dashboard loads, shows all services        |
+| `https://localhost:{{API_HTTPS_PORT}}/weatherforecast`    | API returns JSON weather data                     |
+| `https://localhost:{{UI_PORT}}`                           | Angular app loads without errors                  |
+
+> **AI Agent:** If running in a terminal, you can test the API with:
+> ```bash
+> curl -k https://localhost:{{API_HTTPS_PORT}}/weatherforecast
+> ```
+> The `-k` flag skips SSL certificate verification for the self-signed dev cert.
+
+## 7.7 — Verify Final Project Structure
+
+The completed project should match this structure:
 
 ```
-{{PROJECT_NAME}}/
-├── {{PROJECT_NAME}}.sln                          # Solution file
-├── src/                                           # Source code
-│   ├── {{PROJECT_NAME}}.API/                    # ASP.NET Core API
+{{PROJECT_FULL_PATH}}/
+├── {{PROJECT_NAME}}.sln
+├── start-dev.sh                                   # (macOS/Linux)
+├── start-dev.ps1                                  # (Windows)
+├── src/
+│   ├── {{PROJECT_NAME}}.API/
 │   │   ├── Controllers/
+│   │   │   └── WeatherForecastController.cs
 │   │   ├── Properties/
+│   │   │   └── launchSettings.json
 │   │   ├── Program.cs
 │   │   ├── {{PROJECT_NAME}}.API.csproj
 │   │   ├── {{PROJECT_NAME}}.API.http
-│   │   └── appsettings*.json
-│   └── {{PROJECT_NAME}}.UI/                     # Angular frontend
+│   │   ├── appsettings.json
+│   │   └── appsettings.Development.json
+│   └── {{PROJECT_NAME}}.UI/
 │       ├── src/
 │       ├── public/
 │       ├── llm/
+│       │   └── angular-best-practice.md
 │       ├── angular.json
 │       ├── package.json
+│       ├── package-lock.json
+│       ├── node_modules/
 │       ├── proxy.conf.json
 │       ├── aspnetcore-https.js
 │       └── {{PROJECT_NAME}}.UI.esproj
-├── tools/                                        # Development tools
-│   ├── AppHost/                                  # Aspire orchestration
+├── tools/
+│   ├── AppHost/
+│   │   ├── Properties/
+│   │   │   └── launchSettings.json
 │   │   ├── Program.cs
 │   │   ├── AppHost.csproj
-│   │   └── Properties/launchSettings.json
-│   └── ServiceDefaults/                          # Shared services
+│   │   ├── appsettings.json
+│   │   └── appsettings.Development.json
+│   └── ServiceDefaults/
 │       ├── Extensions.cs
 │       └── ServiceDefaults.csproj
-└── docs/                                         # Documentation
+└── docs/
     └── llm/
-        └── project-setup/                        # Setup prompts
+        └── project-setup/
 ```
 
-## Common Issues and Solutions
+---
 
-### 1. Port Conflicts
-```bash
-# Check which ports are in use
-lsof -i :4200  # Angular
-lsof -i :7055  # API
-lsof -i :17055 # Dashboard
+## ✅ Final Validation Checklist
 
-# Kill processes if needed
-kill -9 <PID>
-```
+| #  | Check                                                         | How to Verify                                           | Pass? |
+|----|---------------------------------------------------------------|---------------------------------------------------------|-------|
+| 1  | Solution builds without errors                                | `dotnet build` exits with code 0                        | ☐     |
+| 2  | All 4 projects in solution                                    | `dotnet sln list` shows all 4                           | ☐     |
+| 3  | AppHost starts all services                                   | `dotnet run` from `tools/AppHost/` succeeds             | ☐     |
+| 4  | Dashboard accessible                                          | Open `https://localhost:{{DASHBOARD_HTTPS_PORT}}`       | ☐     |
+| 5  | Dashboard shows all services as "Running"                     | Check dashboard UI                                      | ☐     |
+| 6  | API responds                                                  | `curl -k https://localhost:{{API_HTTPS_PORT}}/weatherforecast` returns JSON | ☐ |
+| 7  | Angular app loads                                             | Open `https://localhost:{{UI_PORT}}`                    | ☐     |
+| 8  | No `{{...}}` placeholders remain in any file                  | Search all generated files                              | ☐     |
 
-### 2. HTTPS Certificate Issues
-```bash
-# Re-trust certificates
-dotnet dev-certs https --clean
-dotnet dev-certs https --trust
-```
+> **AI Agent:** If ALL 8 checks pass, congratulate the user and report the project is ready. If any check fails, troubleshoot using the table below.
 
-### 3. npm Dependency Issues
-```bash
-# Clear npm cache and reinstall
-cd src/{{PROJECT_NAME}}.UI
-rm -rf node_modules package-lock.json
-npm install
-```
+---
 
-### 4. Build Errors
-```bash
-# Clean and rebuild
-dotnet clean
-dotnet restore
-dotnet build
-```
+## Troubleshooting
 
-## Success Criteria
+| Problem                                      | Diagnosis                                         | Solution                                                           |
+|----------------------------------------------|---------------------------------------------------|--------------------------------------------------------------------|
+| Build fails with project reference errors    | Missing project in `.sln` or wrong path in `.csproj` | Verify all `dotnet sln add` commands ran. Check `<ProjectReference>` paths. |
+| AppHost fails to start                       | Check terminal error output                       | Verify all projects build individually first                       |
+| Dashboard not accessible                     | Port conflict or HTTPS issue                      | Check `lsof -i :{{DASHBOARD_HTTPS_PORT}}` and run `dotnet dev-certs https --trust` |
+| API returns 404                              | Wrong URL or missing controller                   | Verify WeatherForecastController.cs exists                         |
+| Angular app shows blank page                 | Check browser console for errors                  | Run `npm start` manually from UI directory to see Angular errors   |
+| CORS errors in browser console               | CORS not configured for the UI port               | Verify `Program.cs` CORS config uses port `{{UI_PORT}}`           |
+| npm install failed                           | Network or permissions issue                      | Delete `node_modules` + `package-lock.json` and retry              |
 
-Your setup is complete when:
+---
 
-1. ✅ `dotnet build` succeeds for entire solution
-2. ✅ AppHost starts all services without errors
-3. ✅ Dashboard shows all services as healthy
-4. ✅ API responds to requests at https://localhost:7055
-5. ✅ Angular app loads at https://localhost:4200
-6. ✅ API proxy works (Angular can call backend APIs)
-7. ✅ Hot reload works for both frontend and backend changes
-
-## Next Steps
-
-Your {{PROJECT_NAME}} project is now fully set up with:
-
-- ✅ Modern .NET 10.0 backend with OpenAPI
-- ✅ Angular 21 frontend with TypeScript
-- ✅ .NET Aspire orchestration and monitoring  
-- ✅ Production-ready observability (logs, metrics, tracing)
-- ✅ HTTPS development environment
-- ✅ Integrated development experience
-
-You can now start developing your application features!
+> **AI Agent:** Once all checks pass, the project setup is complete. Optionally proceed to **[08-automation-script.md](./08-automation-script.md)** to generate reusable setup scripts.

@@ -1,46 +1,47 @@
-# Frontend UI Setup
+# Step 4 — Frontend UI Setup
 
-This guide creates the Angular project with all necessary configurations for integration with the .NET API.
+> **AI Agent Instruction:** This step creates the Angular project inside `src/{{PROJECT_NAME}}.UI/`. You will scaffold an Angular app, create the `.esproj` integration file, configure HTTPS, and set up the API proxy. Replace ALL `{{...}}` placeholders before writing any file.
 
-## Step 1: Create Angular Project
+---
+
+## 4.1 — Scaffold the Angular Project
 
 ```bash
-# Navigate to the UI directory
-cd src/{{PROJECT_NAME}}.UI
-
-# Create Angular project with specific configurations
+cd "{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI"
 ng new {{PROJECT_NAME_LOWER}}-ui --routing=true --style=scss --skip-git=true --package-manager=npm --directory=.
 ```
 
-## Step 2: Create .esproj File
+**Expected output:** The Angular CLI creates the project files. This may take 1–2 minutes.
 
-Create `{{PROJECT_NAME}}.UI.esproj`:
+> **AI Agent:** If `ng` is not found, go back to Step 1 and install Angular CLI. If the directory is not empty, ask the user whether to delete existing contents first.
+
+## 4.2 — Create the .esproj File
+
+Create `{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI/{{PROJECT_NAME}}.UI.esproj` with this exact content:
 
 ```xml
 <Project Sdk="Microsoft.VisualStudio.JavaScript.Sdk/0.5.128-alpha">
   <PropertyGroup>
     <StartupCommand>npm start</StartupCommand>
     <JavaScriptTestFramework>Jasmine</JavaScriptTestFramework>
-    <!-- Allows the build (or compile) script located on package.json to run on Build -->
     <ShouldRunBuildScript>false</ShouldRunBuildScript>
-    <!-- Folder where production build objects will be placed -->
     <PublishAssetsDirectory>$(MSBuildProjectDirectory)\dist\</PublishAssetsDirectory>
   </PropertyGroup>
-    <PropertyGroup Condition="'$(Configuration)'=='docker'">
+  <PropertyGroup Condition="'$(Configuration)'=='docker'">
     <StartupCommand>npm start</StartupCommand>
     <BuildCommand>npm run docker</BuildCommand>
     <JavaScriptTestFramework>Jasmine</JavaScriptTestFramework>
-    <!-- Allows the build (or compile) script located on package.json to run on Build -->
     <ShouldRunBuildScript>false</ShouldRunBuildScript>
-    <!-- Folder where production build objects will be placed -->
     <PublishAssetsDirectory>$(MSBuildProjectDirectory)\dist\</PublishAssetsDirectory>
   </PropertyGroup>
 </Project>
 ```
 
-## Step 3: Update Package.json Scripts
+> **AI Agent:** The `.esproj` file is what allows the .NET solution to treat the Angular project as a project reference. This file is critical for the SPA proxy integration.
 
-Update the `scripts` section in `package.json`:
+## 4.3 — Update package.json Scripts
+
+Open `{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI/package.json` and replace the `"scripts"` section with:
 
 ```json
 {
@@ -54,14 +55,16 @@ Update the `scripts` section in `package.json`:
 }
 ```
 
-## Step 4: Create Proxy Configuration
+> **AI Agent:** Only replace the `"scripts"` block. Keep all other sections (`dependencies`, `devDependencies`, etc.) unchanged.
 
-Create `proxy.conf.json`:
+## 4.4 — Create API Proxy Configuration
+
+Create `{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI/proxy.conf.json`:
 
 ```json
 {
   "/api/*": {
-    "target": "https://localhost:7055",
+    "target": "https://localhost:{{API_HTTPS_PORT}}",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"
@@ -69,12 +72,15 @@ Create `proxy.conf.json`:
 }
 ```
 
-## Step 5: Configure Angular for HTTPS
+> **AI Agent:** This file tells the Angular dev server to forward any request matching `/api/*` to the ASP.NET Core backend. The `secure: false` allows self-signed dev certificates.
 
-Create `aspnetcore-https.js`:
+## 4.5 — Create HTTPS Certificate Helper
+
+Create `{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI/aspnetcore-https.js`:
 
 ```javascript
-// This script configures HTTPS for the Angular development server when running behind ASP.NET Core.
+// This script configures HTTPS for the Angular development server
+// when running behind ASP.NET Core SPA proxy.
 const fs = require('fs');
 const spawn = require('child_process').spawn;
 const path = require('path');
@@ -104,80 +110,30 @@ if (!fs.existsSync(certFilePath) || !fs.existsSync(keyFilePath)) {
     '--format',
     'Pem',
     '--no-password',
-  ], { stdio: 'inherit', })
+  ], { stdio: 'inherit' })
   .on('exit', (code) => process.exit(code));
 }
 ```
 
-## Step 6: Update Angular.json for SCSS and SSL
+## 4.6 — Verify angular.json Configuration
 
-Ensure your `angular.json` has the correct configuration for SCSS:
+Open `{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI/angular.json` and verify these settings are present. If Angular CLI generated them correctly, no changes may be needed. If not, update them:
 
-```json
-{
-  "projects": {
-    "{{PROJECT_NAME_LOWER}}-ui": {
-      "schematics": {
-        "@schematics/angular:component": {
-          "style": "scss"
-        }
-      },
-      "architect": {
-        "build": {
-          "options": {
-            "inlineStyleLanguage": "scss",
-            "styles": [
-              "src/styles.scss"
-            ]
-          }
-        },
-        "test": {
-          "options": {
-            "inlineStyleLanguage": "scss",
-            "styles": [
-              "src/styles.scss"
-            ]
-          }
-        }
-      }
-    }
-  }
-}
-```
+**Required settings (confirm these exist):**
+- `"inlineStyleLanguage": "scss"` under `architect.build.options`
+- `"styles": ["src/styles.scss"]` under `architect.build.options`
+- `"inlineStyleLanguage": "scss"` under `architect.test.options`
+- `"styles": ["src/styles.scss"]` under `architect.test.options`
 
-## Step 7: Create Basic Documentation
+> **AI Agent:** Angular CLI 21 with `--style=scss` should generate these correctly. Only modify if they are missing or incorrect.
 
-Create `README.md`:
-
-```markdown
-# {{PROJECT_NAME}} UI
-
-Angular frontend for the {{PROJECT_NAME}} application.
-
-## Development server
-
-Run `npm start` for a dev server. Navigate to `https://localhost:4200/`. The application will automatically reload if you change any of the source files.
-
-## Build
-
-Run `npm run build` to build the project. The build artifacts will be stored in the `dist/` directory.
-
-## Running unit tests
-
-Run `npm test` to execute the unit tests via [Karma](https://karma-runner.github.io).
-
-## API Integration
-
-The frontend is configured to proxy API calls to the backend at `https://localhost:7055` through the proxy configuration in `proxy.conf.json`.
-```
-
-## Step 8: Create LLM Documentation Directory
+## 4.7 — Create LLM Best Practices Doc (Optional)
 
 ```bash
-mkdir llm
+mkdir -p "{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI/llm"
 ```
 
-Create `llm/angular-best-practice.md`:
+Create `{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI/llm/angular-best-practice.md`:
 
 ```markdown
 # Angular Best Practices for {{PROJECT_NAME}}
@@ -190,7 +146,6 @@ Create `llm/angular-best-practice.md`:
 ## Styling
 - Use SCSS for all styles
 - Follow BEM naming convention
-- Use Angular Material design system (when added)
 
 ## State Management
 - Use Angular signals for simple state
@@ -205,56 +160,50 @@ Create `llm/angular-best-practice.md`:
 - Write unit tests for all components and services
 - Use Angular Testing Library for component testing
 - Mock HTTP calls in tests
-
-## Build & Deployment
-- Use production builds for deployment
-- Enable ahead-of-time (AOT) compilation
-- Optimize bundle sizes with lazy loading
 ```
 
-## Step 9: Add to Solution
+## 4.8 — Add Project to Solution
 
 ```bash
-# Navigate back to solution root
-cd ../..
-
-# Add UI project to solution
-dotnet sln add src/{{PROJECT_NAME}}.UI/{{PROJECT_NAME}}.UI.esproj
+cd "{{PROJECT_FULL_PATH}}"
+dotnet sln add "src/{{PROJECT_NAME}}.UI/{{PROJECT_NAME}}.UI.esproj"
 ```
 
-## Step 10: Install Dependencies
+**Expected output:** `Project '...' added to the solution.`
+
+## 4.9 — Install npm Dependencies
 
 ```bash
-# Navigate back to UI directory
-cd src/{{PROJECT_NAME}}.UI
-
-# Install npm dependencies
+cd "{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI"
 npm install
 ```
 
-## Verification
+> **AI Agent:** This may take 1–3 minutes depending on network speed. If it fails, try deleting `node_modules` and `package-lock.json` and retrying.
 
-```bash
-# Test Angular CLI works
-ng version
+---
 
-# Test the development server (optional - will start the dev server)
-# npm start
-```
+## ✅ Validation Checkpoint
 
-## Key Features Configured
+| Check                                          | Command / Action                                             | Pass? |
+|------------------------------------------------|--------------------------------------------------------------|-------|
+| Angular project files exist                     | `ls "{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI/angular.json"` | ☐ |
+| `.esproj` file exists                           | `ls "{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI/{{PROJECT_NAME}}.UI.esproj"` | ☐ |
+| `proxy.conf.json` exists with correct port      | Check file contains port `{{API_HTTPS_PORT}}`               | ☐     |
+| `package.json` scripts updated                  | `start` script includes `--ssl --proxy-config`               | ☐     |
+| `node_modules` installed                        | `ls "{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI/node_modules"` | ☐ |
+| `ng version` works from UI directory            | Run `cd ... && ng version`                                    | ☐    |
+| Project added to solution                       | `.sln` references the `.esproj`                               | ☐    |
 
-1. **HTTPS Support**: Angular dev server runs on HTTPS (localhost:4200)
-2. **API Proxy**: All `/api/*` requests proxy to the backend
-3. **SCSS Styling**: Configured for SCSS preprocessing
-4. **TypeScript**: Full TypeScript support with strict mode
-5. **Testing**: Jasmine + Karma testing framework
-6. **Development Integration**: Works seamlessly with ASP.NET Core SPA proxy
+> **AI Agent:** Proceed to **[05-service-defaults-setup.md](./05-service-defaults-setup.md)** if not already done.
 
-## Variable Replacements
+---
 
-When using this template, replace:
-- `{{PROJECT_NAME}}` with your actual project name (e.g., "SpendingTracker")
-- `{{PROJECT_NAME_LOWER}}` with lowercase version (e.g., "spending-tracker")
+## Troubleshooting
 
-The Angular project is now ready and will integrate with the .NET API through the proxy configuration.
+| Issue                                 | Solution                                                              |
+|---------------------------------------|-----------------------------------------------------------------------|
+| `ng new` fails — directory not empty  | Ask user to delete contents first, or use `--force`                  |
+| `ng new` fails — CLI not found        | Run `npm install -g @angular/cli@21`                                 |
+| `npm install` fails                   | Delete `node_modules` and `package-lock.json`, retry                 |
+| `.esproj` causes build warnings       | This is normal until all projects are connected in Step 7            |
+| SSL errors in browser                 | Run `dotnet dev-certs https --trust` and `node aspnetcore-https.js`  |

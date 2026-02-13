@@ -1,20 +1,23 @@
-# Backend API Setup
+# Step 3 — Backend API Setup
 
-This guide creates the ASP.NET Core Web API project with all necessary configurations.
+> **AI Agent Instruction:** This step creates the ASP.NET Core Web API project inside `src/{{PROJECT_NAME}}.API/`. You will scaffold the project, then overwrite specific files with the exact content shown. Run each command from the paths specified. Validate at the end.
 
-## Step 1: Create Web API Project
+---
+
+## 3.1 — Scaffold the Web API Project
 
 ```bash
-# Navigate to the API directory
-cd src/{{PROJECT_NAME}}.API
-
-# Create ASP.NET Core Web API project
-dotnet new webapi -n {{PROJECT_NAME}}.API --use-controllers --framework net10.0
+cd "{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.API"
+dotnet new webapi -n "{{PROJECT_NAME}}.API" --use-controllers --framework net10.0
 ```
 
-## Step 2: Update Project File
+**Expected output:** `The template "ASP.NET Core Web API" was created successfully.`
 
-Replace the contents of `{{PROJECT_NAME}}.API.csproj` with:
+> **AI Agent:** This generates default files. Several files will be overwritten in the steps below.
+
+## 3.2 — Overwrite the Project File
+
+Replace the **entire contents** of `{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.API/{{PROJECT_NAME}}.API.csproj` with:
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk.Web">
@@ -26,7 +29,7 @@ Replace the contents of `{{PROJECT_NAME}}.API.csproj` with:
         <InvariantGlobalization>true</InvariantGlobalization>
         <SpaRoot>.\{{PROJECT_NAME}}.UI</SpaRoot>
         <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
-        <SpaProxyServerUrl>https://localhost:4200</SpaProxyServerUrl>
+        <SpaProxyServerUrl>https://localhost:{{UI_PORT}}</SpaProxyServerUrl>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
@@ -41,7 +44,7 @@ Replace the contents of `{{PROJECT_NAME}}.API.csproj` with:
             <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
         </ProjectReference>
     </ItemGroup>
-    
+
     <ItemGroup>
         <Folder Include="Controllers\" />
         <Folder Include="wwwroot\" />
@@ -49,9 +52,11 @@ Replace the contents of `{{PROJECT_NAME}}.API.csproj` with:
 </Project>
 ```
 
-## Step 3: Update Program.cs
+> **AI Agent:** Make sure every `{{PROJECT_NAME}}` and `{{UI_PORT}}` placeholder is replaced with the actual values before writing this file.
 
-Replace the contents of `Program.cs` with:
+## 3.3 — Overwrite Program.cs
+
+Replace the **entire contents** of `{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.API/Program.cs` with:
 
 ```csharp
 using Microsoft.Extensions.FileProviders;
@@ -60,16 +65,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.AddServiceDefaults();
 
-// Add CORS
+// Add CORS for Angular dev server
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("https://localhost:4200", "http://localhost:4200")
+        policy.WithOrigins("https://localhost:{{UI_PORT}}", "http://localhost:{{UI_PORT}}")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -94,9 +98,9 @@ app.MapFallbackToFile("/index.html");
 app.Run();
 ```
 
-## Step 4: Configure Launch Settings
+## 3.4 — Create Launch Settings
 
-Create/update `Properties/launchSettings.json`:
+Create or overwrite `{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.API/Properties/launchSettings.json` with:
 
 ```json
 {
@@ -106,7 +110,7 @@ Create/update `Properties/launchSettings.json`:
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,
-      "applicationUrl": "http://localhost:5259",
+      "applicationUrl": "http://localhost:{{API_HTTP_PORT}}",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy"
@@ -116,7 +120,7 @@ Create/update `Properties/launchSettings.json`:
       "commandName": "Project",
       "dotnetRunMessages": true,
       "launchBrowser": false,
-      "applicationUrl": "https://localhost:7055;http://localhost:5259",
+      "applicationUrl": "https://localhost:{{API_HTTPS_PORT}};http://localhost:{{API_HTTP_PORT}}",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.AspNetCore.SpaProxy"
@@ -126,9 +130,9 @@ Create/update `Properties/launchSettings.json`:
 }
 ```
 
-## Step 5: Update App Settings
+## 3.5 — Create App Settings Files
 
-Ensure `appsettings.json` contains:
+Create or overwrite `{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.API/appsettings.json`:
 
 ```json
 {
@@ -142,7 +146,7 @@ Ensure `appsettings.json` contains:
 }
 ```
 
-And `appsettings.Development.json`:
+Create or overwrite `{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.API/appsettings.Development.json`:
 
 ```json
 {
@@ -155,12 +159,12 @@ And `appsettings.Development.json`:
 }
 ```
 
-## Step 6: Create HTTP Test File (Optional)
+## 3.6 — Create HTTP Test File (Optional)
 
-Create `{{PROJECT_NAME}}.API.http` for API testing:
+Create `{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.API/{{PROJECT_NAME}}.API.http`:
 
 ```http
-@{{PROJECT_NAME}}.API_HostAddress = https://localhost:7055
+@{{PROJECT_NAME}}.API_HostAddress = https://localhost:{{API_HTTPS_PORT}}
 
 GET {{{{PROJECT_NAME}}.API_HostAddress}}/weatherforecast/
 Accept: application/json
@@ -168,32 +172,43 @@ Accept: application/json
 ###
 ```
 
-## Step 7: Add to Solution
+## 3.7 — Add Project to Solution
 
 ```bash
-# Navigate back to solution root
-cd ../..
-
-# Add API project to solution
-dotnet sln add src/{{PROJECT_NAME}}.API/{{PROJECT_NAME}}.API.csproj
+cd "{{PROJECT_FULL_PATH}}"
+dotnet sln add "src/{{PROJECT_NAME}}.API/{{PROJECT_NAME}}.API.csproj"
 ```
 
-## Verification
+**Expected output:** `Project '...' added to the solution.`
+
+---
+
+## ✅ Validation Checkpoint
 
 ```bash
-# Build the API project
-dotnet build src/{{PROJECT_NAME}}.API/{{PROJECT_NAME}}.API.csproj
-
-# The build should succeed (will show warnings about missing ServiceDefaults - that's expected)
+cd "{{PROJECT_FULL_PATH}}"
+dotnet build "src/{{PROJECT_NAME}}.API/{{PROJECT_NAME}}.API.csproj"
 ```
 
-## Key Features Configured
+> **Note:** The build will show **warnings** about the missing ServiceDefaults and UI projects. This is expected at this stage. The key check is that the build command **does not produce errors** (warnings are OK).
 
-1. **SPA Integration**: Configured to work with Angular frontend
-2. **CORS**: Allows requests from Angular dev server (localhost:4200)
-3. **OpenAPI**: Swagger documentation enabled in development
-4. **Service Defaults**: Ready for Aspire integration
-5. **HTTPS**: Configured for secure development
-6. **Static Files**: Can serve Angular build output
+| Check                                            | Expected Result               | Pass? |
+|--------------------------------------------------|-------------------------------|-------|
+| `.csproj` file exists and has correct content     | File contains `net10.0` target | ☐    |
+| `Program.cs` has CORS and ServiceDefaults config  | File matches Step 3.3         | ☐     |
+| `launchSettings.json` has correct ports           | Ports match user config       | ☐     |
+| `dotnet build` completes (warnings OK, no errors) | Exit code 0                  | ☐     |
+| Project added to solution                         | `.sln` references the project | ☐     |
 
-The API project is now ready and will integrate seamlessly with the frontend once all projects are created.
+> **AI Agent:** Proceed to **[04-frontend-ui-setup.md](./04-frontend-ui-setup.md)** (or Step 5 if doing them in parallel).
+
+---
+
+## Troubleshooting
+
+| Issue                                          | Solution                                                             |
+|------------------------------------------------|----------------------------------------------------------------------|
+| `dotnet new webapi` fails                      | Verify .NET 10.0 SDK: `dotnet --version`                           |
+| Build error: "ServiceDefaults not found"       | This is expected — ServiceDefaults is created in Step 5             |
+| Build error: "UI.esproj not found"             | This is expected — the UI project is created in Step 4              |
+| Port already in use                            | Change the port in `launchSettings.json` and update the variable    |

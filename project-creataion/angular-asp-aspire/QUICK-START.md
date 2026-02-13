@@ -1,118 +1,104 @@
 # Quick Start Guide
 
-The fastest way to recreate the {{PROJECT_NAME}} project setup.
+> **AI Agent Instruction:** Use this guide when the user wants the fastest path to a working project. This is a condensed version of Steps 0–7. You MUST still collect all variables from the user first (see [README.md](./README.md) for the variable collection flow).
 
-## TL;DR - One Command Setup
+---
+
+## Prerequisites Check (30 seconds)
+
+Run all at once — every command must succeed:
 
 ```bash
-# Download and run the automation script
-curl -sSL https://raw.githubusercontent.com/your-repo/setup-project.sh | bash -s YourProjectName
-
-# Or clone and run locally
-git clone <this-repo>
-cd <this-repo>/docs/llm/project-setup
-./setup-project.sh YourProjectName
+dotnet --version      # Must be 10.0.x
+node --version        # Must be v24+
+ng version            # Must be Angular CLI 21.x
+dotnet workload list  # Must include "aspire"
 ```
 
-## Manual 5-Minute Setup
+> **AI Agent:** If any check fails, see [01-prerequisites.md](./01-prerequisites.md) for installation instructions. Do not continue until all pass.
 
-If you prefer to understand what's being created:
+---
 
-### 1. Prerequisites (2 minutes)
+## Full Setup (5 minutes)
+
+Run these commands sequentially. Replace all `{{...}}` placeholders with actual values.
+
+### 1 — Create Structure
+
 ```bash
-# Verify you have everything
-dotnet --version  # Should be 10.0.x
-node --version    # Should be 24+
-ng version        # Should be 21.x
-dotnet workload list | grep aspire  # Should show aspire
+mkdir -p "{{PROJECT_FULL_PATH}}"
+cd "{{PROJECT_FULL_PATH}}"
+dotnet new sln -n "{{PROJECT_NAME}}"
+mkdir -p src/{{PROJECT_NAME}}.API src/{{PROJECT_NAME}}.UI tools/AppHost tools/ServiceDefaults docs/llm/project-setup
 ```
 
-### 2. Create Structure (1 minute)
+### 2 — Create ServiceDefaults
+
 ```bash
-mkdir YourProjectName && cd YourProjectName
-dotnet new sln -n YourProjectName
-mkdir -p src/{YourProjectName.API,YourProjectName.UI} tools/{AppHost,ServiceDefaults}
+cd "{{PROJECT_FULL_PATH}}/tools/ServiceDefaults"
+dotnet new classlib -n ServiceDefaults --framework net10.0
+rm Class1.cs
 ```
+Then overwrite `ServiceDefaults.csproj` and create `Extensions.cs` — see [05-service-defaults-setup.md](./05-service-defaults-setup.md) for exact file contents.
 
-### 3. Create Projects (2 minutes)
+### 3 — Create API
+
 ```bash
-# ServiceDefaults
-cd tools/ServiceDefaults && dotnet new classlib -n ServiceDefaults --framework net10.0
-
-# API  
-cd ../../src/YourProjectName.API && dotnet new webapi -n YourProjectName.API --framework net10.0
-
-# Angular UI
-cd ../YourProjectName.UI && ng new yourprojectname-ui --routing --style=scss --skip-git --directory=.
-
-# AppHost
-cd ../../tools/AppHost && dotnet new aspire-apphost -n AppHost
+cd "{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.API"
+dotnet new webapi -n "{{PROJECT_NAME}}.API" --use-controllers --framework net10.0
 ```
+Then overwrite `.csproj`, `Program.cs`, and `launchSettings.json` — see [03-backend-api-setup.md](./03-backend-api-setup.md) for exact file contents.
 
-### 4. Configure Integration (30 seconds)
+### 4 — Create Angular UI
+
 ```bash
-# Add to solution
-cd ../../
-dotnet sln add src/YourProjectName.API/YourProjectName.API.csproj
-dotnet sln add src/YourProjectName.UI/YourProjectName.UI.esproj  
-dotnet sln add tools/AppHost/AppHost.csproj
-dotnet sln add tools/ServiceDefaults/ServiceDefaults.csproj
-
-# Build and run
-dotnet restore && dotnet build
-cd tools/AppHost && dotnet run
+cd "{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI"
+ng new {{PROJECT_NAME_LOWER}}-ui --routing=true --style=scss --skip-git=true --package-manager=npm --directory=.
 ```
+Then create `.esproj`, `proxy.conf.json`, `aspnetcore-https.js`, and update `package.json` scripts — see [04-frontend-ui-setup.md](./04-frontend-ui-setup.md) for exact file contents.
+
+### 5 — Create AppHost
+
+```bash
+cd "{{PROJECT_FULL_PATH}}/tools/AppHost"
+dotnet new aspire-apphost -n AppHost
+```
+Then overwrite `AppHost.csproj`, `Program.cs`, and `launchSettings.json` — see [06-aspire-apphost-setup.md](./06-aspire-apphost-setup.md) for exact file contents.
+
+### 6 — Wire Together and Build
+
+```bash
+cd "{{PROJECT_FULL_PATH}}"
+dotnet sln add "src/{{PROJECT_NAME}}.API/{{PROJECT_NAME}}.API.csproj"
+dotnet sln add "src/{{PROJECT_NAME}}.UI/{{PROJECT_NAME}}.UI.esproj"
+dotnet sln add "tools/AppHost/AppHost.csproj"
+dotnet sln add "tools/ServiceDefaults/ServiceDefaults.csproj"
+
+dotnet restore
+cd "src/{{PROJECT_NAME}}.UI" && npm install && cd ../..
+dotnet build
+```
+
+### 7 — Trust Certs and Run
+
+```bash
+dotnet dev-certs https --trust
+cd "{{PROJECT_FULL_PATH}}/tools/AppHost"
+dotnet run
+```
+
+---
 
 ## What You Get
 
-After setup completes, you'll have:
+| Service          | URL                                             |
+|------------------|-------------------------------------------------|
+| Aspire Dashboard | `https://localhost:{{DASHBOARD_HTTPS_PORT}}`    |
+| Backend API      | `https://localhost:{{API_HTTPS_PORT}}`          |
+| Angular Frontend | `https://localhost:{{UI_PORT}}`                 |
 
-- ✅ **ASP.NET Core API** running on https://localhost:7055
-- ✅ **Angular 21 Frontend** running on https://localhost:4200  
-- ✅ **.NET Aspire Dashboard** at https://localhost:17055
-- ✅ **Full HTTPS development environment**
-- ✅ **Integrated hot reload** for both frontend and backend
-- ✅ **Production-ready telemetry** (logs, metrics, tracing)
+---
 
-## Immediate Next Steps
+## If Something Goes Wrong
 
-1. **Verify setup**: Open https://localhost:17055 to see the Aspire dashboard
-2. **Test API**: Visit https://localhost:7055/swagger for API documentation  
-3. **Test Frontend**: Open https://localhost:4200 to see Angular app
-4. **Start coding**: Add your first controller and Angular component
-
-## Default Configuration
-
-- **API Ports**: 7055 (HTTPS), 5259 (HTTP)
-- **UI Port**: 4200 (HTTPS with proxy to API)
-- **Dashboard Port**: 17055 (HTTPS)
-- **Framework Versions**: .NET 10.0, Angular 21, TypeScript 5.9
-
-## Troubleshooting
-
-**Build fails?**
-```bash
-dotnet clean && dotnet restore && dotnet build
-```
-
-**Ports in use?**  
-```bash
-lsof -i :4200,:7055,:17055 # Check what's using the ports
-```
-
-**HTTPS issues?**
-```bash
-dotnet dev-certs https --trust
-```
-
-**Need detailed setup?** Follow the numbered guides (01-08) for step-by-step instructions.
-
-## Customization Variables
-
-Replace these in the automation script or manual setup:
-
-- `YourProjectName` → Your actual project name
-- `yourprojectname-ui` → Lowercase version for Angular
-- Ports can be changed in `launchSettings.json` and `proxy.conf.json`
-
-This gets you from zero to a running full-stack application in under 5 minutes!
+See the detailed step-by-step guides (00–07) or the troubleshooting tables in [README.md](./README.md).

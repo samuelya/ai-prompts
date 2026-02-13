@@ -1,97 +1,129 @@
-# Prerequisites Setup
+# Step 1 — Prerequisites Verification
 
-Before creating the {{PROJECT_NAME}} project, ensure you have all required tools installed.
+> **AI Agent Instruction:** Before creating anything, verify that ALL required tools are installed and meet the minimum version. Run each verification command below. If any tool is missing or outdated, help the user install it before proceeding.
 
-## Required Software
+---
 
-### 1. .NET SDK
+## Required Tools
+
+Run each command below and check the output matches the expected version.
+
+### 1.1 — .NET SDK (Required: 10.0.x)
+
 ```bash
-# Install .NET 10.0 SDK
-# Download from: https://dotnet.microsoft.com/download/dotnet/10.0
-# Or use package manager (e.g., brew on macOS):
-brew install dotnet
-
-# Verify installation
-dotnet --version  # Should show 10.0.x
+dotnet --version
 ```
 
-### 2. Node.js & npm
-```bash
-# Install Node.js (LTS version recommended)
-# Download from: https://nodejs.org/
-# Or use package manager:
-brew install node
+**Expected output:** `10.0.x` (any 10.0 patch version is acceptable)
 
-# Verify installation
-node --version  # Should be v24+ 
-npm --version   # Should be 10+
+**If missing or wrong version — Install:**
+- **macOS:** `brew install dotnet`
+- **Windows:** Download from https://dotnet.microsoft.com/download/dotnet/10.0
+- **Linux:** Follow https://learn.microsoft.com/en-us/dotnet/core/install/linux
+
+### 1.2 — Node.js (Required: 24.x+)
+
+```bash
+node --version
 ```
 
-### 3. Angular CLI
+**Expected output:** `v24.x.x` or higher
+
+**If missing or wrong version — Install:**
+- **macOS:** `brew install node`
+- **Windows/Linux:** Download from https://nodejs.org/
+
+### 1.3 — npm (Required: 10.x+)
+
 ```bash
-# Install Angular CLI globally
+npm --version
+```
+
+**Expected output:** `10.x.x` or higher (npm ships with Node.js)
+
+### 1.4 — Angular CLI (Required: 21.x)
+
+```bash
+ng version
+```
+
+**Expected output:** Must show `Angular CLI: 21.x.x`
+
+**If missing or wrong version — Install:**
+```bash
 npm install -g @angular/cli@21
-
-# Verify installation
-ng version  # Should show Angular CLI 21.x.x
 ```
 
-### 4. .NET Aspire Workload
+### 1.5 — .NET Aspire Workload
+
 ```bash
-# Install .NET Aspire workload
+dotnet workload list
+```
+
+**Expected output:** Must include a row containing `aspire`
+
+**If missing — Install:**
+```bash
 dotnet workload update
 dotnet workload install aspire
-
-# Verify installation
-dotnet workload list | grep aspire
 ```
 
-## Optional but Recommended
+### 1.6 — Git (Optional but Recommended)
 
-### 1. Visual Studio 2022 or Visual Studio Code
-- **Visual Studio 2022**: Full IDE with excellent .NET Aspire support
-- **VS Code**: Lightweight editor with C# and Angular extensions
-
-### 2. Git
 ```bash
-# Install Git for version control
-# Download from: https://git-scm.com/
-# Or use package manager:
-brew install git
-
-# Verify installation
 git --version
 ```
 
-## Environment Verification
+**Expected output:** Any version is acceptable.
 
-Run these commands to verify your environment is ready:
+**If missing — Install:**
+- **macOS:** `brew install git`
+- **Windows:** Download from https://git-scm.com/
+- **Linux:** `sudo apt install git` or `sudo yum install git`
 
+---
+
+## Port Availability Check (Optional but Recommended)
+
+Check that the configured ports are not already in use:
+
+**macOS / Linux:**
 ```bash
-# Check .NET version
-dotnet --version
-
-# Check .NET workloads
-dotnet workload list
-
-# Check Node.js and npm
-node --version
-npm --version
-
-# Check Angular CLI
-ng version
-
-# Check if ports are available (optional)
-lsof -i :4200  # Should be empty
-lsof -i :5259  # Should be empty  
-lsof -i :7055  # Should be empty
+lsof -i :{{API_HTTPS_PORT}} -i :{{API_HTTP_PORT}} -i :{{UI_PORT}} -i :{{DASHBOARD_HTTPS_PORT}}
 ```
 
-## Common Issues
+**Windows (PowerShell):**
+```powershell
+netstat -ano | Select-String "{{API_HTTPS_PORT}}|{{API_HTTP_PORT}}|{{UI_PORT}}|{{DASHBOARD_HTTPS_PORT}}"
+```
 
-1. **Port conflicts**: Ensure ports 4200, 5259, and 7055 are available
-2. **.NET Aspire not found**: Make sure to install the aspire workload
-3. **Angular CLI version**: Ensure you're using Angular CLI 21.x for compatibility
-4. **Node.js version**: Use Node.js LTS (24+) for best compatibility
+**Expected output:** Empty (no output means ports are free). If any port is in use, inform the user and ask whether to change the port or kill the process.
 
-Once all prerequisites are installed, proceed to the next setup step.
+---
+
+## ✅ Validation Checkpoint
+
+All prerequisites are satisfied when every row below is checked:
+
+| Tool              | Command                | Required Version | Status |
+|-------------------|------------------------|------------------|--------|
+| .NET SDK          | `dotnet --version`     | 10.0.x           | ☐      |
+| Node.js           | `node --version`       | 24.x+            | ☐      |
+| npm               | `npm --version`        | 10.x+            | ☐      |
+| Angular CLI       | `ng version`           | 21.x             | ☐      |
+| .NET Aspire       | `dotnet workload list` | aspire present   | ☐      |
+
+> **AI Agent:** Only proceed to **[02-solution-structure.md](./02-solution-structure.md)** when ALL required tools pass. If any tool fails, help the user install it first.
+
+---
+
+## Troubleshooting
+
+| Issue                                | Solution                                                        |
+|--------------------------------------|-----------------------------------------------------------------|
+| `dotnet` command not found           | Install .NET SDK and ensure it's on the system PATH             |
+| `ng` command not found               | Run `npm install -g @angular/cli@21`                            |
+| `ng version` shows wrong version     | Run `npm uninstall -g @angular/cli && npm install -g @angular/cli@21` |
+| `dotnet workload list` empty         | Run `dotnet workload update && dotnet workload install aspire`  |
+| Node.js version too old              | Install latest LTS from https://nodejs.org/                     |
+| Permission denied on global npm      | Use `sudo npm install -g` (mac/linux) or run terminal as admin (windows) |

@@ -1,20 +1,29 @@
-# Service Defaults Setup
+# Step 5 — Service Defaults Setup
 
-This guide creates the shared ServiceDefaults project that provides common .NET Aspire services like telemetry, health checks, and resilience patterns.
+> **AI Agent Instruction:** This step creates the shared `ServiceDefaults` class library in `tools/ServiceDefaults/`. This library provides telemetry, health checks, resilience, and service discovery to all .NET projects. Scaffold the project, then overwrite the project file and create `Extensions.cs`.
 
-## Step 1: Create ServiceDefaults Project
+---
+
+## 5.1 — Scaffold the Class Library
 
 ```bash
-# Navigate to ServiceDefaults directory
-cd tools/ServiceDefaults
-
-# Create class library project
+cd "{{PROJECT_FULL_PATH}}/tools/ServiceDefaults"
 dotnet new classlib -n ServiceDefaults --framework net10.0
 ```
 
-## Step 2: Update Project File
+**Expected output:** `The template "Class Library" was created successfully.`
 
-Replace the contents of `ServiceDefaults.csproj`:
+## 5.2 — Delete the Default Class
+
+```bash
+rm "{{PROJECT_FULL_PATH}}/tools/ServiceDefaults/Class1.cs"
+```
+
+> **AI Agent:** The scaffolded `Class1.cs` is a placeholder. It must be removed and replaced with `Extensions.cs` in Step 5.4.
+
+## 5.3 — Overwrite the Project File
+
+Replace the **entire contents** of `{{PROJECT_FULL_PATH}}/tools/ServiceDefaults/ServiceDefaults.csproj` with:
 
 ```xml
 <Project Sdk="Microsoft.NET.Sdk">
@@ -41,9 +50,11 @@ Replace the contents of `ServiceDefaults.csproj`:
 </Project>
 ```
 
-## Step 3: Create Extensions Class
+> **AI Agent:** The `<IsAspireSharedProject>true</IsAspireSharedProject>` property marks this as a shared Aspire project. The `<FrameworkReference>` to `Microsoft.AspNetCore.App` gives access to ASP.NET Core APIs without making this a web project.
 
-Delete the auto-generated `Class1.cs` and create `Extensions.cs`:
+## 5.4 — Create Extensions.cs
+
+Create `{{PROJECT_FULL_PATH}}/tools/ServiceDefaults/Extensions.cs` with this exact content:
 
 ```csharp
 using Microsoft.AspNetCore.Builder;
@@ -109,7 +120,8 @@ public static class Extensions
             {
                 tracing.AddSource(builder.Environment.ApplicationName)
                     .AddAspNetCoreInstrumentation()
-                    // Uncomment the following line to enable gRPC instrumentation (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
+                    // Uncomment the following line to enable gRPC instrumentation
+                    // (requires the OpenTelemetry.Instrumentation.GrpcNetClient package)
                     //.AddGrpcClientInstrumentation()
                     .AddHttpClientInstrumentation();
             });
@@ -129,7 +141,8 @@ public static class Extensions
             builder.Services.AddOpenTelemetry().UseOtlpExporter();
         }
 
-        // Uncomment the following lines to enable the Azure Monitor exporter (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
+        // Uncomment the following lines to enable the Azure Monitor exporter
+        // (requires the Azure.Monitor.OpenTelemetry.AspNetCore package)
         //if (!string.IsNullOrEmpty(builder.Configuration["APPLICATIONINSIGHTS_CONNECTION_STRING"]))
         //{
         //    builder.Services.AddOpenTelemetry()
@@ -170,69 +183,54 @@ public static class Extensions
 }
 ```
 
-## Step 4: Add to Solution
+> **AI Agent:** This file has NO `{{...}}` placeholders — copy it exactly as shown. It is a generic shared library used by all .NET projects in the solution.
+
+## 5.5 — Add Project to Solution
 
 ```bash
-# Navigate back to solution root
-cd ../..
-
-# Add ServiceDefaults project to solution
-dotnet sln add tools/ServiceDefaults/ServiceDefaults.csproj
+cd "{{PROJECT_FULL_PATH}}"
+dotnet sln add "tools/ServiceDefaults/ServiceDefaults.csproj"
 ```
 
-## Step 5: Build and Verify
+**Expected output:** `Project '...' added to the solution.`
+
+---
+
+## ✅ Validation Checkpoint
 
 ```bash
-# Build the ServiceDefaults project
-dotnet build tools/ServiceDefaults/ServiceDefaults.csproj
-
-# Should build successfully
+cd "{{PROJECT_FULL_PATH}}"
+dotnet build "tools/ServiceDefaults/ServiceDefaults.csproj"
 ```
 
-## What This Project Provides
+**Expected:** Build succeeds with exit code 0, no errors.
 
-### 1. Service Discovery
-- Automatic service discovery between microservices
-- HTTP client configuration with service discovery support
+| Check                                          | Expected Result                    | Pass? |
+|------------------------------------------------|------------------------------------|-------|
+| `Class1.cs` is deleted                         | File does not exist                | ☐     |
+| `Extensions.cs` exists                         | File exists with correct content   | ☐     |
+| `.csproj` has `IsAspireSharedProject` property | Property is `true`                 | ☐     |
+| `dotnet build` succeeds                        | Exit code 0, no errors             | ☐     |
+| Project added to solution                      | `.sln` references the project      | ☐     |
 
-### 2. Resilience Patterns
-- Automatic retry policies
-- Circuit breakers
-- Timeout handling
-- Standard resilience handlers for HTTP clients
+> **AI Agent:** Proceed to **[06-aspire-apphost-setup.md](./06-aspire-apphost-setup.md)** only after Steps 3, 4, AND 5 are all complete.
 
-### 3. OpenTelemetry Integration
-- **Metrics**: ASP.NET Core, HTTP client, and runtime metrics
-- **Tracing**: Request tracing across services
-- **Logging**: Structured logging with OpenTelemetry
+---
 
-### 4. Health Checks
-- Basic health checks for service monitoring
-- Development-only health check endpoints (`/health`, `/alive`)
-- Liveness and readiness probes
+## What This Library Provides
 
-### 5. HTTP Client Defaults
-- Standard configuration for all HTTP clients
-- Automatic resilience and service discovery
+| Feature             | Description                                                |
+|---------------------|------------------------------------------------------------|
+| Service Discovery   | Automatic registration and resolution of service endpoints |
+| Resilience          | Retry policies, circuit breakers, and timeout handling     |
+| OpenTelemetry       | Distributed tracing, metrics, and structured logging       |
+| Health Checks       | `/health` and `/alive` endpoints for monitoring            |
+| HTTP Client Defaults| Standard resilience and discovery for all HTTP clients     |
 
-## Usage in Other Projects
+## Troubleshooting
 
-Any project that references ServiceDefaults can use:
-
-```csharp
-// In Program.cs or service configuration
-builder.AddServiceDefaults();
-
-// In web applications, also add:
-app.MapDefaultEndpoints();
-```
-
-## Key Benefits
-
-1. **Consistency**: All services use the same base configuration
-2. **Observability**: Built-in telemetry and monitoring
-3. **Resilience**: Automatic retry and circuit breaker patterns
-4. **Production Ready**: Industry-standard patterns for cloud deployment
-5. **Development Experience**: Rich debugging and monitoring tools
-
-This ServiceDefaults project is the foundation that makes your application production-ready with minimal configuration.
+| Issue                                  | Solution                                                    |
+|----------------------------------------|-------------------------------------------------------------|
+| Build fails: missing NuGet packages    | Run `dotnet restore` from the project directory             |
+| Build fails: framework reference error | Verify `net10.0` target and .NET 10.0 SDK installed        |
+| `Class1.cs` still exists               | Delete it manually: `rm Class1.cs`                          |

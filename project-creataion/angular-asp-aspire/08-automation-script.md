@@ -1,302 +1,274 @@
-# Automation Script for Project Setup
+# Step 8 — Automation Scripts (Optional)
 
-This script automates the entire {{PROJECT_NAME}} project creation process.
+> **AI Agent Instruction:** This step generates reusable scripts that can recreate the entire project from scratch with a single command. This step is **optional** — only execute it if the user wants automation scripts. Ask the user: *"Would you like me to generate automation scripts so you can recreate this project setup with a single command in the future?"*
 
-## PowerShell Script (Windows)
+---
 
-Create `setup-project.ps1`:
+## 8.1 — PowerShell Script (Windows)
+
+Create `{{PROJECT_FULL_PATH}}/setup-project.ps1`:
 
 ```powershell
 param(
     [Parameter(Mandatory=$true)]
     [string]$ProjectName,
-    
+
     [Parameter(Mandatory=$false)]
-    [string]$TargetDirectory = "."
+    [string]$TargetDirectory = ".",
+
+    [Parameter(Mandatory=$false)]
+    [int]$ApiHttpsPort = {{API_HTTPS_PORT}},
+
+    [Parameter(Mandatory=$false)]
+    [int]$ApiHttpPort = {{API_HTTP_PORT}},
+
+    [Parameter(Mandatory=$false)]
+    [int]$UiPort = {{UI_PORT}},
+
+    [Parameter(Mandatory=$false)]
+    [int]$DashboardHttpsPort = {{DASHBOARD_HTTPS_PORT}},
+
+    [Parameter(Mandatory=$false)]
+    [int]$DashboardHttpPort = {{DASHBOARD_HTTP_PORT}},
+
+    [Parameter(Mandatory=$false)]
+    [int]$OtlpPort = {{OTLP_PORT}},
+
+    [Parameter(Mandatory=$false)]
+    [int]$ResourceServicePort = {{RESOURCE_SERVICE_PORT}}
 )
 
-# Validate project name
-if ($ProjectName -notmatch '^[A-Za-z][A-Za-z0-9]*$') {
-    Write-Error "Project name must start with a letter and contain only letters and numbers"
+# --- Validation ---
+if ($ProjectName -notmatch '^[A-Z][A-Za-z0-9]+$') {
+    Write-Error "❌ Project name must be PascalCase, start with an uppercase letter, and contain only letters and numbers."
     exit 1
 }
 
-$ProjectNameLower = $ProjectName.ToLower()
+$ProjectNameLower = ($ProjectName -creplace '([A-Z])', '-$1').TrimStart('-').ToLower()
 $UserSecretsId = [System.Guid]::NewGuid().ToString()
-
-Write-Host "Creating $ProjectName project structure..." -ForegroundColor Green
-
-# Create directory structure
 $ProjectRoot = Join-Path $TargetDirectory $ProjectName
-New-Item -ItemType Directory -Path $ProjectRoot -Force
+
+Write-Host ""
+Write-Host "📋 Configuration Summary:" -ForegroundColor Cyan
+Write-Host "  Project Name:       $ProjectName" -ForegroundColor White
+Write-Host "  Angular Name:       $ProjectNameLower" -ForegroundColor White
+Write-Host "  Location:           $ProjectRoot" -ForegroundColor White
+Write-Host "  API Ports:          $ApiHttpsPort (HTTPS), $ApiHttpPort (HTTP)" -ForegroundColor White
+Write-Host "  UI Port:            $UiPort" -ForegroundColor White
+Write-Host "  Dashboard Ports:    $DashboardHttpsPort (HTTPS), $DashboardHttpPort (HTTP)" -ForegroundColor White
+Write-Host ""
+
+# --- Directory Structure ---
+Write-Host "📁 Creating directory structure..." -ForegroundColor Yellow
+New-Item -ItemType Directory -Path $ProjectRoot -Force | Out-Null
 Set-Location $ProjectRoot
 
-# Create directories
-@("src", "tools", "docs", "docs/llm", "docs/llm/project-setup") | ForEach-Object {
-    New-Item -ItemType Directory -Path $_ -Force
+@("src", "tools", "docs/llm/project-setup") | ForEach-Object {
+    New-Item -ItemType Directory -Path $_ -Force | Out-Null
 }
-
 @("src/$ProjectName.API", "src/$ProjectName.UI", "tools/AppHost", "tools/ServiceDefaults") | ForEach-Object {
-    New-Item -ItemType Directory -Path $_ -Force
+    New-Item -ItemType Directory -Path $_ -Force | Out-Null
 }
 
-Write-Host "Creating solution file..." -ForegroundColor Yellow
-
-# Create solution
+# --- Solution ---
+Write-Host "📝 Creating solution file..." -ForegroundColor Yellow
 dotnet new sln -n $ProjectName
 
-Write-Host "Creating ServiceDefaults project..." -ForegroundColor Yellow
-
-# Create ServiceDefaults
+# --- ServiceDefaults ---
+Write-Host "🛠️  Creating ServiceDefaults project..." -ForegroundColor Yellow
 Set-Location "tools/ServiceDefaults"
 dotnet new classlib -n ServiceDefaults --framework net10.0
-Remove-Item "Class1.cs" -Force
+Remove-Item "Class1.cs" -Force -ErrorAction SilentlyContinue
 
-# ServiceDefaults project file content
-@"
-<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <IsAspireSharedProject>true</IsAspireSharedProject>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
-
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.3.0"/>
-        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.3.0"/>
-        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.0"/>
-        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0"/>
-    </ItemGroup>
-
-</Project>
-"@ | Out-File -FilePath "ServiceDefaults.csproj" -Encoding UTF8
-
-# Extensions.cs content (truncated for brevity - include full content from setup guide)
-@"
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.ServiceDiscovery;
-using OpenTelemetry;
-using OpenTelemetry.Metrics;
-using OpenTelemetry.Trace;
-
-namespace Microsoft.Extensions.Hosting;
-
-// Adds common .NET Aspire services: service discovery, resilience, health checks, and OpenTelemetry.
-// This project should be referenced by each service project in your solution.
-// To learn more about using this project, see https://aka.ms/dotnet/aspire/service-defaults
-public static class Extensions
-{
-    public static TBuilder AddServiceDefaults<TBuilder>(this TBuilder builder) where TBuilder : IHostApplicationBuilder
-    {
-        builder.ConfigureOpenTelemetry();
-
-        builder.AddDefaultHealthChecks();
-
-        builder.Services.AddServiceDiscovery();
-
-        builder.Services.ConfigureHttpClientDefaults(http =>
-        {
-            // Turn on resilience by default
-            http.AddStandardResilienceHandler();
-
-            // Turn on service discovery by default
-            http.AddServiceDiscovery();
-        });
-
-        return builder;
-    }
-
-    // Additional methods omitted for brevity - include full Extensions.cs content
-}
-"@ | Out-File -FilePath "Extensions.cs" -Encoding UTF8
+# (Write ServiceDefaults.csproj and Extensions.cs content here)
+# AI Agent: Insert the full file contents from Step 5
 
 Set-Location "../.."
 
-Write-Host "Creating API project..." -ForegroundColor Yellow
-
-# Create API project
+# --- API ---
+Write-Host "🌐 Creating API project..." -ForegroundColor Yellow
 Set-Location "src/$ProjectName.API"
 dotnet new webapi -n "$ProjectName.API" --use-controllers --framework net10.0
 
-# Update API project file
-@"
-<Project Sdk="Microsoft.NET.Sdk.Web">
+# (Write .csproj, Program.cs, launchSettings.json, appsettings.json here)
+# AI Agent: Insert the full file contents from Step 3, with all ports substituted
 
-    <PropertyGroup>
-        <TargetFramework>net10.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
-        <InvariantGlobalization>true</InvariantGlobalization>
-        <SpaRoot>..\..$ProjectName.UI</SpaRoot>
-        <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
-        <SpaProxyServerUrl>https://localhost:4200</SpaProxyServerUrl>
-        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    </PropertyGroup>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
-        <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="10.0.3" />
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\..\tools\ServiceDefaults\ServiceDefaults.csproj" />
-        <ProjectReference Include="..\$ProjectName.UI\$ProjectName.UI.esproj">
-            <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-        </ProjectReference>
-    </ItemGroup>
-    
-    <ItemGroup>
-        <Folder Include="Controllers\" />
-        <Folder Include="wwwroot\" />
-    </ItemGroup>
-</Project>
-"@ | Out-File -FilePath "$ProjectName.API.csproj" -Encoding UTF8
-
-# Update Program.cs (include full content from setup guide)
 Set-Location "../.."
 
-Write-Host "Creating Angular project..." -ForegroundColor Yellow
-
-# Create Angular project
+# --- Angular ---
+Write-Host "⚡ Creating Angular project..." -ForegroundColor Yellow
 Set-Location "src/$ProjectName.UI"
 ng new "$ProjectNameLower-ui" --routing=true --style=scss --skip-git=true --package-manager=npm --directory=.
 
-# Create .esproj file and other Angular configurations
-# (Include all Angular setup content from the guide)
+# (Write .esproj, proxy.conf.json, aspnetcore-https.js, update package.json scripts)
+# AI Agent: Insert the full file contents from Step 4, with all ports substituted
 
 Set-Location "../.."
 
-Write-Host "Creating AppHost project..." -ForegroundColor Yellow
-
-# Create AppHost
+# --- AppHost ---
+Write-Host "🎛️  Creating AppHost project..." -ForegroundColor Yellow
 Set-Location "tools/AppHost"
 dotnet new aspire-apphost -n AppHost
 
-# Update AppHost files with proper references
-# (Include AppHost setup content)
+# (Write AppHost.csproj, Program.cs, launchSettings.json, appsettings.json here)
+# AI Agent: Insert the full file contents from Step 6, with all ports and GUIDs substituted
 
 Set-Location "../.."
 
-Write-Host "Adding projects to solution..." -ForegroundColor Yellow
-
-# Add all projects to solution
+# --- Solution References ---
+Write-Host "📦 Adding projects to solution..." -ForegroundColor Yellow
 dotnet sln add "src/$ProjectName.API/$ProjectName.API.csproj"
 dotnet sln add "src/$ProjectName.UI/$ProjectName.UI.esproj"
 dotnet sln add "tools/AppHost/AppHost.csproj"
 dotnet sln add "tools/ServiceDefaults/ServiceDefaults.csproj"
 
-Write-Host "Restoring dependencies..." -ForegroundColor Yellow
-
-# Restore .NET dependencies
+# --- Dependencies ---
+Write-Host "📥 Restoring dependencies..." -ForegroundColor Yellow
 dotnet restore
 
-# Install npm dependencies
 Set-Location "src/$ProjectName.UI"
 npm install
 Set-Location "../.."
 
-Write-Host "Building solution..." -ForegroundColor Yellow
-
-# Build solution
+# --- Build ---
+Write-Host "🔨 Building solution..." -ForegroundColor Yellow
 dotnet build
 
-Write-Host "" -ForegroundColor Green
-Write-Host "✅ Project $ProjectName created successfully!" -ForegroundColor Green
-Write-Host "" -ForegroundColor Green
-Write-Host "Next steps:" -ForegroundColor Yellow
-Write-Host "1. cd $ProjectName" -ForegroundColor White
-Write-Host "2. cd tools/AppHost" -ForegroundColor White
-Write-Host "3. dotnet run" -ForegroundColor White
-Write-Host "" -ForegroundColor Green
-Write-Host "This will start the Aspire dashboard at https://localhost:17055" -ForegroundColor White
+if ($LASTEXITCODE -eq 0) {
+    Write-Host ""
+    Write-Host "✅ Project $ProjectName created successfully!" -ForegroundColor Green
+    Write-Host ""
+    Write-Host "To start the application:" -ForegroundColor Yellow
+    Write-Host "  cd $ProjectRoot/tools/AppHost" -ForegroundColor White
+    Write-Host "  dotnet run" -ForegroundColor White
+    Write-Host ""
+    Write-Host "Dashboard: https://localhost:$DashboardHttpsPort" -ForegroundColor Cyan
+    Write-Host "API:       https://localhost:$ApiHttpsPort" -ForegroundColor Cyan
+    Write-Host "UI:        https://localhost:$UiPort" -ForegroundColor Cyan
+} else {
+    Write-Host ""
+    Write-Host "❌ Build failed. Check the errors above." -ForegroundColor Red
+    exit 1
+}
 ```
 
-## Bash Script (macOS/Linux)
+---
 
-Create `setup-project.sh`:
+## 8.2 — Bash Script (macOS / Linux)
+
+Create `{{PROJECT_FULL_PATH}}/setup-project.sh`:
 
 ```bash
 #!/bin/bash
+set -e
 
-# Function to display usage
+# --- Usage ---
 usage() {
     echo "Usage: $0 <ProjectName> [TargetDirectory]"
-    echo "Example: $0 MySpendingApp ."
+    echo ""
+    echo "  ProjectName       PascalCase name (e.g., SpendingTracker)"
+    echo "  TargetDirectory   Parent directory (default: current directory)"
+    echo ""
+    echo "Example: $0 SpendingTracker /Users/sam/Projects"
     exit 1
 }
 
-# Validate arguments
-if [ $# -lt 1 ]; then
-    usage
-fi
+# --- Arguments ---
+if [ $# -lt 1 ]; then usage; fi
 
-PROJECT_NAME=$1
-TARGET_DIR=${2:-.}
-PROJECT_NAME_LOWER=$(echo "$PROJECT_NAME" | tr '[:upper:]' '[:lower:]')
-USER_SECRETS_ID=$(uuidgen)
+PROJECT_NAME="$1"
+TARGET_DIR="${2:-.}"
 
-# Validate project name
-if [[ ! $PROJECT_NAME =~ ^[A-Za-z][A-Za-z0-9]*$ ]]; then
-    echo "Error: Project name must start with a letter and contain only letters and numbers"
+# --- Validation ---
+if [[ ! "$PROJECT_NAME" =~ ^[A-Z][A-Za-z0-9]+$ ]]; then
+    echo "❌ Error: Project name must be PascalCase, start with an uppercase letter, and contain only letters and numbers."
     exit 1
 fi
 
-echo "🚀 Creating $PROJECT_NAME project structure..."
-
-# Create project root
+PROJECT_NAME_LOWER=$(echo "$PROJECT_NAME" | sed 's/\([A-Z]\)/-\1/g' | sed 's/^-//' | tr '[:upper:]' '[:lower:]')
+USER_SECRETS_ID=$(uuidgen | tr '[:upper:]' '[:lower:]')
 PROJECT_ROOT="$TARGET_DIR/$PROJECT_NAME"
+
+API_HTTPS_PORT={{API_HTTPS_PORT}}
+API_HTTP_PORT={{API_HTTP_PORT}}
+UI_PORT={{UI_PORT}}
+DASHBOARD_HTTPS_PORT={{DASHBOARD_HTTPS_PORT}}
+DASHBOARD_HTTP_PORT={{DASHBOARD_HTTP_PORT}}
+OTLP_PORT={{OTLP_PORT}}
+RESOURCE_SERVICE_PORT={{RESOURCE_SERVICE_PORT}}
+
+echo ""
+echo "📋 Configuration Summary:"
+echo "  Project Name:       $PROJECT_NAME"
+echo "  Angular Name:       $PROJECT_NAME_LOWER"
+echo "  Location:           $PROJECT_ROOT"
+echo "  API Ports:          $API_HTTPS_PORT (HTTPS), $API_HTTP_PORT (HTTP)"
+echo "  UI Port:            $UI_PORT"
+echo "  Dashboard Ports:    $DASHBOARD_HTTPS_PORT (HTTPS), $DASHBOARD_HTTP_PORT (HTTP)"
+echo ""
+
+# --- Directory Structure ---
+echo "📁 Creating directory structure..."
 mkdir -p "$PROJECT_ROOT"
 cd "$PROJECT_ROOT"
 
-# Create directory structure
-mkdir -p src tools docs/llm/project-setup
-mkdir -p "src/${PROJECT_NAME}.API" "src/${PROJECT_NAME}.UI" 
+mkdir -p "src/${PROJECT_NAME}.API" "src/${PROJECT_NAME}.UI"
 mkdir -p tools/AppHost tools/ServiceDefaults
+mkdir -p docs/llm/project-setup
 
+# --- Solution ---
 echo "📝 Creating solution file..."
-
-# Create solution
 dotnet new sln -n "$PROJECT_NAME"
 
-echo "🛠️ Creating ServiceDefaults project..."
-
-# Create ServiceDefaults (similar to PowerShell but with bash syntax)
+# --- ServiceDefaults ---
+echo "🛠️  Creating ServiceDefaults project..."
 cd tools/ServiceDefaults
 dotnet new classlib -n ServiceDefaults --framework net10.0
-rm Class1.cs
+rm -f Class1.cs
 
-# Create project files (content similar to PowerShell version)
-# ... (include all file content creation)
+# (Write ServiceDefaults.csproj and Extensions.cs content here)
+# AI Agent: Insert the full file contents from Step 5
 
 cd ../..
 
+# --- API ---
 echo "🌐 Creating API project..."
-# ... (API project creation)
+cd "src/${PROJECT_NAME}.API"
+dotnet new webapi -n "${PROJECT_NAME}.API" --use-controllers --framework net10.0
 
+# (Write .csproj, Program.cs, launchSettings.json, appsettings.json here)
+# AI Agent: Insert the full file contents from Step 3, with all ports substituted
+
+cd ../..
+
+# --- Angular ---
 echo "⚡ Creating Angular project..."
-# ... (Angular project creation)
+cd "src/${PROJECT_NAME}.UI"
+ng new "${PROJECT_NAME_LOWER}-ui" --routing=true --style=scss --skip-git=true --package-manager=npm --directory=.
 
-echo "🎛️ Creating AppHost project..."
-# ... (AppHost project creation)
+# (Write .esproj, proxy.conf.json, aspnetcore-https.js, update package.json scripts)
+# AI Agent: Insert the full file contents from Step 4, with all ports substituted
 
+cd ../..
+
+# --- AppHost ---
+echo "🎛️  Creating AppHost project..."
+cd tools/AppHost
+dotnet new aspire-apphost -n AppHost
+
+# (Write AppHost.csproj, Program.cs, launchSettings.json, appsettings.json here)
+# AI Agent: Insert the full file contents from Step 6, with all ports and GUIDs substituted
+
+cd ../..
+
+# --- Solution References ---
 echo "📦 Adding projects to solution..."
-# Add projects to solution
 dotnet sln add "src/${PROJECT_NAME}.API/${PROJECT_NAME}.API.csproj"
 dotnet sln add "src/${PROJECT_NAME}.UI/${PROJECT_NAME}.UI.esproj"
 dotnet sln add tools/AppHost/AppHost.csproj
 dotnet sln add tools/ServiceDefaults/ServiceDefaults.csproj
 
+# --- Dependencies ---
 echo "📥 Restoring dependencies..."
 dotnet restore
 
@@ -304,94 +276,59 @@ cd "src/${PROJECT_NAME}.UI"
 npm install
 cd ../..
 
+# --- Build ---
 echo "🔨 Building solution..."
 dotnet build
 
 echo ""
 echo "✅ Project $PROJECT_NAME created successfully!"
 echo ""
-echo "Next steps:"
-echo "1. cd $PROJECT_NAME"
-echo "2. cd tools/AppHost"  
-echo "3. dotnet run"
+echo "To start the application:"
+echo "  cd $PROJECT_ROOT/tools/AppHost"
+echo "  dotnet run"
 echo ""
-echo "This will start the Aspire dashboard at https://localhost:17055"
+echo "Dashboard: https://localhost:$DASHBOARD_HTTPS_PORT"
+echo "API:       https://localhost:$API_HTTPS_PORT"
+echo "UI:        https://localhost:$UI_PORT"
 ```
 
-## Usage Instructions
+Make the script executable:
+```bash
+chmod +x "{{PROJECT_FULL_PATH}}/setup-project.sh"
+```
+
+---
+
+## 8.3 — Usage Instructions
 
 ### Windows (PowerShell)
 ```powershell
-# Make script executable and run
-./setup-project.ps1 -ProjectName "MySpendingApp" -TargetDirectory "C:\Development"
+./setup-project.ps1 -ProjectName "SpendingTracker" -TargetDirectory "C:\Development"
 ```
 
-### macOS/Linux (Bash)
+### macOS / Linux (Bash)
 ```bash
-# Make script executable
-chmod +x setup-project.sh
-
-# Run script
-./setup-project.sh MySpendingApp /Users/username/Development
+./setup-project.sh SpendingTracker /Users/sam/Development
 ```
 
-## Interactive Version
+---
 
-Create `setup-interactive.ps1` for interactive setup:
+## ✅ Validation Checkpoint
 
-```powershell
-Write-Host "🚀 Welcome to the .NET Aspire + Angular Project Generator" -ForegroundColor Green
-Write-Host ""
+| Check                                          | Expected Result                        | Pass? |
+|------------------------------------------------|----------------------------------------|-------|
+| Script file created at correct location         | File exists                           | ☐     |
+| Script has correct permissions (bash)           | `ls -la` shows executable permission  | ☐     |
+| All `{{...}}` placeholders replaced in scripts  | No placeholders remain               | ☐     |
 
-# Get project name
-do {
-    $ProjectName = Read-Host "Enter project name (e.g., SpendingTracker, MyBudgetApp)"
-    if ($ProjectName -notmatch '^[A-Za-z][A-Za-z0-9]*$') {
-        Write-Host "❌ Project name must start with a letter and contain only letters and numbers" -ForegroundColor Red
-    }
-} while ($ProjectName -notmatch '^[A-Za-z][A-Za-z0-9]*$')
+> **AI Agent:** This step is complete. Report the final project status to the user with all endpoint URLs and next steps.
 
-# Get target directory
-$TargetDir = Read-Host "Enter target directory (default: current directory)" 
-if ([string]::IsNullOrWhiteSpace($TargetDir)) {
-    $TargetDir = "."
-}
+---
 
-# Confirm settings
-Write-Host ""
-Write-Host "Project Settings:" -ForegroundColor Yellow
-Write-Host "  Name: $ProjectName" -ForegroundColor White
-Write-Host "  Directory: $TargetDir" -ForegroundColor White
-Write-Host "  Project Type: .NET Aspire + Angular" -ForegroundColor White
-Write-Host ""
+## Troubleshooting
 
-$Confirm = Read-Host "Continue? (y/N)"
-if ($Confirm -ne "y" -and $Confirm -ne "Y") {
-    Write-Host "❌ Setup cancelled" -ForegroundColor Red
-    exit
-}
-
-# Call the main setup script
-& "./setup-project.ps1" -ProjectName $ProjectName -TargetDirectory $TargetDir
-```
-
-## Features of Automation Script
-
-1. **Input Validation**: Ensures valid project names
-2. **Complete Setup**: Creates entire project structure automatically  
-3. **Dependency Installation**: Installs all .NET and npm packages
-4. **Build Verification**: Verifies the project builds successfully
-5. **Cross-Platform**: Works on Windows, macOS, and Linux
-6. **Error Handling**: Provides clear error messages
-7. **Progress Indication**: Shows setup progress with colored output
-
-## Customization Options
-
-You can customize the scripts to:
-- Add additional NuGet packages
-- Include extra Angular dependencies
-- Configure different ports
-- Add custom project templates
-- Include additional tooling setup
-
-This automation script makes it possible to recreate the exact project structure in any environment with a single command.
+| Issue                              | Solution                                                       |
+|------------------------------------|----------------------------------------------------------------|
+| PowerShell execution policy error  | Run `Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser` |
+| Bash permission denied             | Run `chmod +x setup-project.sh`                                |
+| Script fails mid-execution         | Check which step failed, fix manually, then re-run             |

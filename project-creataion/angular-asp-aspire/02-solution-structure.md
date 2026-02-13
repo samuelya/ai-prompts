@@ -1,74 +1,95 @@
-# Solution Structure Setup
+# Step 2 — Solution Structure Setup
 
-This guide will help you create the exact solution structure for {{PROJECT_NAME}}.
+> **AI Agent Instruction:** This step creates the root directory, the .NET solution file, and all subdirectories. Every command must use the user's confirmed `{{PROJECT_FULL_PATH}}` and `{{PROJECT_NAME}}`. Run each command sequentially and verify the output.
 
-## Step 1: Create Root Directory
+---
 
-```bash
-mkdir {{PROJECT_NAME}}
-cd {{PROJECT_NAME}}
-```
-
-## Step 2: Create Solution File
+## 2.1 — Create the Root Project Directory
 
 ```bash
-# Create the main solution file
-dotnet new sln -n {{PROJECT_NAME}}
+mkdir -p "{{PROJECT_FULL_PATH}}"
+cd "{{PROJECT_FULL_PATH}}"
 ```
 
-## Step 3: Create Directory Structure
+> **AI Agent:** Verify the directory was created. If `mkdir` fails (e.g., permission denied), ask the user to check permissions on `{{PROJECT_ROOT_PATH}}`.
+
+## 2.2 — Create the .NET Solution File
 
 ```bash
-# Create main directories
-mkdir src
-mkdir tools
-mkdir docs
-mkdir docs/llm
-mkdir docs/llm/project-setup
-
-# Create project-specific directories
-mkdir src/{{PROJECT_NAME}}.API
-mkdir src/{{PROJECT_NAME}}.UI
-mkdir tools/AppHost
-mkdir tools/ServiceDefaults
+cd "{{PROJECT_FULL_PATH}}"
+dotnet new sln -n "{{PROJECT_NAME}}"
 ```
 
-## Step 4: Verify Structure
+**Expected output:** `The template "Solution File" was created successfully.`
 
-After creation, your directory structure should look like:
+> **AI Agent:** If this command fails with "template not found", the .NET SDK may be too old. Go back to Step 1.
 
-```
-{{PROJECT_NAME}}/
-├── {{PROJECT_NAME}}.sln                    # Main solution file
-├── src/                                     # Source code directory
-│   ├── {{PROJECT_NAME}}.API/              # Backend API project (empty)
-│   └── {{PROJECT_NAME}}.UI/               # Frontend UI project (empty)
-├── tools/                                  # Development tools
-│   ├── AppHost/                           # Aspire AppHost (empty)
-│   └── ServiceDefaults/                   # Shared defaults (empty)
-└── docs/                                  # Documentation
-    └── llm/                               # LLM-related docs
-        └── project-setup/                 # Setup prompts (empty)
-```
-
-## Step 5: Verify with Command
+## 2.3 — Create All Subdirectories
 
 ```bash
-# List the structure to verify
-tree -a -I 'node_modules|bin|obj|.git' . || find . -type d | head -20
+cd "{{PROJECT_FULL_PATH}}"
+mkdir -p src/{{PROJECT_NAME}}.API
+mkdir -p src/{{PROJECT_NAME}}.UI
+mkdir -p tools/AppHost
+mkdir -p tools/ServiceDefaults
+mkdir -p docs/llm/project-setup
 ```
+
+## 2.4 — Verify the Structure
+
+**macOS / Linux:**
+```bash
+find "{{PROJECT_FULL_PATH}}" -type d | head -20
+```
+
+**Windows (PowerShell):**
+```powershell
+Get-ChildItem -Path "{{PROJECT_FULL_PATH}}" -Directory -Recurse | Select-Object FullName
+```
+
+**Expected structure:**
+```
+{{PROJECT_FULL_PATH}}/
+├── {{PROJECT_NAME}}.sln
+├── src/
+│   ├── {{PROJECT_NAME}}.API/          (empty)
+│   └── {{PROJECT_NAME}}.UI/           (empty)
+├── tools/
+│   ├── AppHost/                        (empty)
+│   └── ServiceDefaults/                (empty)
+└── docs/
+    └── llm/
+        └── project-setup/              (empty)
+```
+
+---
+
+## ✅ Validation Checkpoint
+
+| Check                                                | Command / Action                                      | Pass? |
+|------------------------------------------------------|-------------------------------------------------------|-------|
+| Solution file exists                                 | `ls "{{PROJECT_FULL_PATH}}/{{PROJECT_NAME}}.sln"`    | ☐     |
+| `src/{{PROJECT_NAME}}.API/` directory exists         | `ls -d "{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.API"` | ☐ |
+| `src/{{PROJECT_NAME}}.UI/` directory exists          | `ls -d "{{PROJECT_FULL_PATH}}/src/{{PROJECT_NAME}}.UI"`  | ☐ |
+| `tools/AppHost/` directory exists                    | `ls -d "{{PROJECT_FULL_PATH}}/tools/AppHost"`        | ☐     |
+| `tools/ServiceDefaults/` directory exists            | `ls -d "{{PROJECT_FULL_PATH}}/tools/ServiceDefaults"`| ☐     |
+
+> **AI Agent:** Only proceed to the next steps when all directories exist and the `.sln` file is present. Steps 3, 4, and 5 can be done in any order, but all must complete before Step 6.
+
+---
 
 ## Important Notes
 
-1. **Naming Convention**: Replace `{{PROJECT_NAME}}` with your actual project name
-2. **Case Sensitivity**: Maintain the exact case as shown (e.g., `.API`, `.UI`)
-3. **Directory Order**: The structure follows .NET and Angular conventions
-4. **Empty Directories**: All project directories are empty at this stage
+- **Naming Convention:** The `.API` and `.UI` suffixes use uppercase. Do not change the casing.
+- **All project directories are empty** at this point. Projects will be created inside them in Steps 3–5.
+- **The `docs/llm/project-setup/` directory** is reserved for storing these setup guides in the final project (optional).
 
-## What's Next
+---
 
-1. The solution file is created but doesn't reference any projects yet
-2. All project directories are empty and ready for project creation
-3. The docs/llm/project-setup directory is ready for setup documentation
+## Troubleshooting
 
-Proceed to the next step to create individual projects within this structure.
+| Issue                          | Solution                                                         |
+|--------------------------------|------------------------------------------------------------------|
+| `mkdir` permission denied      | Check write permissions on `{{PROJECT_ROOT_PATH}}`              |
+| `dotnet new sln` fails         | Ensure .NET SDK 10.0 is installed (`dotnet --version`)          |
+| Directory already exists       | Ask the user: "This directory already exists. Should I overwrite it or use a different name?" |
