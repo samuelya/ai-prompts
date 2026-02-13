@@ -20,22 +20,17 @@ dotnet new aspire-apphost -n AppHost
 Replace the **entire contents** of `{{PROJECT_FULL_PATH}}/tools/AppHost/AppHost.csproj` with:
 
 ```xml
-<Project Sdk="Microsoft.NET.Sdk">
-
-    <Sdk Name="Aspire.AppHost.Sdk" Version="13.1.1"/>
+<Project Sdk="Aspire.AppHost.Sdk/13.1.1">
 
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <IsAspireHost>true</IsAspireHost>
         <UserSecretsId>{{USER_SECRETS_ID}}</UserSecretsId>
     </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="Aspire.Hosting.AppHost" Version="13.1.1"/>
-    </ItemGroup>
+    <!-- Aspire.Hosting.AppHost is now included automatically by the SDK -->
 
     <ItemGroup>
       <ProjectReference Include="..\..\src\{{PROJECT_NAME}}.API\{{PROJECT_NAME}}.API.csproj" />
@@ -44,7 +39,13 @@ Replace the **entire contents** of `{{PROJECT_FULL_PATH}}/tools/AppHost/AppHost.
 </Project>
 ```
 
-> **AI Agent:** Replace `{{USER_SECRETS_ID}}` with the generated GUID from the variable registry. Replace `{{PROJECT_NAME}}` with the user's project name. Double-check that the `<ProjectReference>` path is correct relative to the `tools/AppHost/` directory.
+> **AI Agent:** This uses the **Aspire 13+ simplified project format**:
+> - The SDK is declared directly in the `<Project>` tag: `Sdk="Aspire.AppHost.Sdk/13.1.1"`.
+> - `<IsAspireHost>true</IsAspireHost>` has been **removed** (no longer needed in Aspire 13+).
+> - `Aspire.Hosting.AppHost` package reference has been **removed** (now included automatically by the SDK).
+> - Replace `{{USER_SECRETS_ID}}` with the generated GUID. Replace `{{PROJECT_NAME}}` with the user's project name.
+> - Double-check that the `<ProjectReference>` path is correct relative to the `tools/AppHost/` directory.
+> - See: https://learn.microsoft.com/en-us/dotnet/aspire/get-started/upgrade-to-aspire-13
 
 ## 6.3 — Overwrite Program.cs
 

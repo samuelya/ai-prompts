@@ -200,6 +200,8 @@ The project is fully set up when ALL of the following are true:
 | npm install fails                 | Read `npm install` output                                      | Delete `node_modules` + `package-lock.json`, then retry     |
 | Angular CLI not found             | `ng version` returns error                                     | Run `npm install -g @angular/cli` (installs latest version) |
 | Aspire templates missing          | `dotnet new list aspire` shows no results                      | Run `dotnet new install Aspire.ProjectTemplates` (workload is deprecated in .NET 10+) |
+| Older Aspire version detected     | `.csproj` shows Aspire SDK version < 13.0                      | Use `aspire update` or follow [Upgrade to Aspire 13](https://learn.microsoft.com/en-us/dotnet/aspire/get-started/upgrade-to-aspire-13) |
+| Legacy Aspire workload installed  | `dotnet workload list` shows `aspire`                          | Run `dotnet workload uninstall aspire` and use NuGet-based approach instead |
 | Service not starting in AppHost   | Check dashboard logs tab                                       | Verify project references and build each project separately |
 
 ---
