@@ -39,14 +39,14 @@ Use the interactive version for guided setup with prompts.
 
 The setup process creates a full-stack .NET application with:
 
-### Backend (.NET 9.0)
+### Backend (.NET 10.0)
 - ASP.NET Core Web API with OpenAPI/Swagger
 - .NET Aspire integration for orchestration
 - Service defaults with telemetry and health checks  
 - CORS configuration for frontend integration
 - HTTPS development environment
 
-### Frontend (Angular 20)
+### Frontend (Angular 21)
 - TypeScript with strict mode
 - SCSS styling support
 - Jasmine + Karma testing
@@ -63,9 +63,9 @@ The setup process creates a full-stack .NET application with:
 
 Before starting, ensure you have:
 
-- [ ] .NET 9.0 SDK
-- [ ] Node.js 18+ and npm 9+
-- [ ] Angular CLI 20.x
+- [ ] .NET 10.0 SDK
+- [ ] Node.js 24+ and npm 10+
+- [ ] Angular CLI 21.x
 - [ ] .NET Aspire workload (`dotnet workload install aspire`)
 - [ ] Git (optional but recommended)
 
@@ -124,7 +124,7 @@ Common issues and solutions:
 ## 📖 Additional Resources
 
 - [.NET Aspire Documentation](https://learn.microsoft.com/en-us/dotnet/aspire/)
-- [Angular Documentation](https://angular.io/docs)
+- [Angular Documentation](https://angular.dev)
 - [ASP.NET Core Documentation](https://learn.microsoft.com/en-us/aspnet/core/)
 
 ## 🤝 Contributing

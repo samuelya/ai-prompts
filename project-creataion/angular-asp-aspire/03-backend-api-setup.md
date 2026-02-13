@@ -9,7 +9,7 @@ This guide creates the ASP.NET Core Web API project with all necessary configura
 cd src/{{PROJECT_NAME}}.API
 
 # Create ASP.NET Core Web API project
-dotnet new webapi -n {{PROJECT_NAME}}.API --use-controllers --framework net9.0
+dotnet new webapi -n {{PROJECT_NAME}}.API --use-controllers --framework net10.0
 ```
 
 ## Step 2: Update Project File
@@ -20,19 +20,19 @@ Replace the contents of `{{PROJECT_NAME}}.API.csproj` with:
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <InvariantGlobalization>true</InvariantGlobalization>
-        <SpaRoot>..\{{PROJECT_NAME}}.UI</SpaRoot>
+        <SpaRoot>.\{{PROJECT_NAME}}.UI</SpaRoot>
         <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
         <SpaProxyServerUrl>https://localhost:4200</SpaProxyServerUrl>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
-        <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.8" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="10.0.3" />
     </ItemGroup>
 
     <ItemGroup>

@@ -6,13 +6,13 @@ Before creating the {{PROJECT_NAME}} project, ensure you have all required tools
 
 ### 1. .NET SDK
 ```bash
-# Install .NET 9.0 SDK
-# Download from: https://dotnet.microsoft.com/download/dotnet/9.0
+# Install .NET 10.0 SDK
+# Download from: https://dotnet.microsoft.com/download/dotnet/10.0
 # Or use package manager (e.g., brew on macOS):
 brew install dotnet
 
 # Verify installation
-dotnet --version  # Should show 9.0.x
+dotnet --version  # Should show 10.0.x
 ```
 
 ### 2. Node.js & npm
@@ -23,17 +23,17 @@ dotnet --version  # Should show 9.0.x
 brew install node
 
 # Verify installation
-node --version  # Should be v18+ 
-npm --version   # Should be 9+
+node --version  # Should be v24+ 
+npm --version   # Should be 10+
 ```
 
 ### 3. Angular CLI
 ```bash
 # Install Angular CLI globally
-npm install -g @angular/cli@20
+npm install -g @angular/cli@21
 
 # Verify installation
-ng version  # Should show Angular CLI 20.x.x
+ng version  # Should show Angular CLI 21.x.x
 ```
 
 ### 4. .NET Aspire Workload
@@ -91,7 +91,7 @@ lsof -i :7055  # Should be empty
 
 1. **Port conflicts**: Ensure ports 4200, 5259, and 7055 are available
 2. **.NET Aspire not found**: Make sure to install the aspire workload
-3. **Angular CLI version**: Ensure you're using Angular CLI 20.x for compatibility
-4. **Node.js version**: Use Node.js LTS (18+) for best compatibility
+3. **Angular CLI version**: Ensure you're using Angular CLI 21.x for compatibility
+4. **Node.js version**: Use Node.js LTS (24+) for best compatibility
 
 Once all prerequisites are installed, proceed to the next setup step.

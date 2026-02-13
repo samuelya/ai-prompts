@@ -49,7 +49,7 @@ Write-Host "Creating ServiceDefaults project..." -ForegroundColor Yellow
 
 # Create ServiceDefaults
 Set-Location "tools/ServiceDefaults"
-dotnet new classlib -n ServiceDefaults --framework net9.0
+dotnet new classlib -n ServiceDefaults --framework net10.0
 Remove-Item "Class1.cs" -Force
 
 # ServiceDefaults project file content
@@ -57,7 +57,7 @@ Remove-Item "Class1.cs" -Force
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsAspireSharedProject>true</IsAspireSharedProject>
@@ -66,13 +66,13 @@ Remove-Item "Class1.cs" -Force
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App"/>
 
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.0.0"/>
-        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0"/>
-        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.9.0"/>
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.3.0"/>
+        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.3.0"/>
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.0"/>
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.0"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0"/>
     </ItemGroup>
 
 </Project>
@@ -127,26 +127,26 @@ Write-Host "Creating API project..." -ForegroundColor Yellow
 
 # Create API project
 Set-Location "src/$ProjectName.API"
-dotnet new webapi -n "$ProjectName.API" --use-controllers --framework net9.0
+dotnet new webapi -n "$ProjectName.API" --use-controllers --framework net10.0
 
 # Update API project file
 @"
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <InvariantGlobalization>true</InvariantGlobalization>
-        <SpaRoot>..\$ProjectName.UI</SpaRoot>
+        <SpaRoot>..\..$ProjectName.UI</SpaRoot>
         <SpaProxyLaunchCommand>npm start</SpaProxyLaunchCommand>
         <SpaProxyServerUrl>https://localhost:4200</SpaProxyServerUrl>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
-        <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="9.0.8" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.3" />
+        <PackageReference Include="Microsoft.AspNetCore.SpaProxy" Version="10.0.3" />
     </ItemGroup>
 
     <ItemGroup>
@@ -273,7 +273,7 @@ echo "🛠️ Creating ServiceDefaults project..."
 
 # Create ServiceDefaults (similar to PowerShell but with bash syntax)
 cd tools/ServiceDefaults
-dotnet new classlib -n ServiceDefaults --framework net9.0
+dotnet new classlib -n ServiceDefaults --framework net10.0
 rm Class1.cs
 
 # Create project files (content similar to PowerShell version)

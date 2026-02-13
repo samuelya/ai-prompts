@@ -4,14 +4,14 @@ This document provides a comprehensive overview of the {{PROJECT_NAME}} project 
 
 ## Project Type
 - **Architecture**: .NET Aspire with Angular Frontend
-- **Backend**: ASP.NET Core Web API (.NET 9.0)
-- **Frontend**: Angular 20.0 with TypeScript
+- **Backend**: ASP.NET Core Web API (.NET 10.0)
+- **Frontend**: Angular 21.0 with TypeScript
 - **Development Tools**: .NET Aspire AppHost for orchestration
 
 ## Technology Stack
 
 ### Backend (.NET)
-- **.NET Version**: 9.0
+- **.NET Version**: 10.0
 - **Framework**: ASP.NET Core Web API
 - **Features**:
   - OpenAPI/Swagger integration
@@ -22,8 +22,8 @@ This document provides a comprehensive overview of the {{PROJECT_NAME}} project 
   - Service discovery
 
 ### Frontend (Angular)
-- **Angular Version**: 20.0
-- **Language**: TypeScript 5.8.2
+- **Angular Version**: 21.0
+- **Language**: TypeScript 5.9
 - **Styling**: SCSS
 - **Testing**: Jasmine + Karma
 - **Build Tool**: Angular CLI with new application builder

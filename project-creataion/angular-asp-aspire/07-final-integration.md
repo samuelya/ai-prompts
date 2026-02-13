@@ -242,8 +242,8 @@ Your setup is complete when:
 
 Your {{PROJECT_NAME}} project is now fully set up with:
 
-- ✅ Modern .NET 9.0 backend with OpenAPI
-- ✅ Angular 20 frontend with TypeScript
+- ✅ Modern .NET 10.0 backend with OpenAPI
+- ✅ Angular 21 frontend with TypeScript
 - ✅ .NET Aspire orchestration and monitoring  
 - ✅ Production-ready observability (logs, metrics, tracing)
 - ✅ HTTPS development environment

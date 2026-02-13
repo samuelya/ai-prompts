@@ -9,7 +9,7 @@ This guide creates the shared ServiceDefaults project that provides common .NET 
 cd tools/ServiceDefaults
 
 # Create class library project
-dotnet new classlib -n ServiceDefaults --framework net9.0
+dotnet new classlib -n ServiceDefaults --framework net10.0
 ```
 
 ## Step 2: Update Project File
@@ -20,7 +20,7 @@ Replace the contents of `ServiceDefaults.csproj`:
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <IsAspireSharedProject>true</IsAspireSharedProject>
@@ -29,13 +29,13 @@ Replace the contents of `ServiceDefaults.csproj`:
     <ItemGroup>
         <FrameworkReference Include="Microsoft.AspNetCore.App"/>
 
-        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="9.0.0"/>
-        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="9.0.0"/>
-        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0"/>
-        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0"/>
-        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.9.0"/>
+        <PackageReference Include="Microsoft.Extensions.Http.Resilience" Version="10.3.0"/>
+        <PackageReference Include="Microsoft.Extensions.ServiceDiscovery" Version="10.3.0"/>
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.15.0"/>
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.15.0"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.15.0"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.15.0"/>
+        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" Version="1.15.0"/>
     </ItemGroup>
 
 </Project>
