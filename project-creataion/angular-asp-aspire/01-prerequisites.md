@@ -54,19 +54,24 @@ ng version
 npm install -g @angular/cli@21
 ```
 
-### 1.5 — .NET Aspire Workload
+### 1.5 — .NET Aspire (NuGet-based, no workload needed)
+
+> **Important (.NET 10+):** Starting with .NET 10, the Aspire workload is **deprecated**. Aspire now ships entirely as **NuGet packages** and **dotnet new** templates via the `Aspire.ProjectTemplates` package. You do NOT need to run `dotnet workload install aspire`.
+
+Verify that the Aspire AppHost project template is available:
 
 ```bash
-dotnet workload list
+dotnet new list aspire
 ```
 
-**Expected output:** Must include a row containing `aspire`
+**Expected output:** Should list templates such as `aspire-apphost`, `aspire-starter`, etc.
 
-**If missing — Install:**
+**If templates are not listed — Install the template pack:**
 ```bash
-dotnet workload update
-dotnet workload install aspire
+dotnet new install Aspire.ProjectTemplates
 ```
+
+> **AI Agent:** Do NOT run `dotnet workload install aspire` — this is a legacy approach for .NET 8/9. With .NET 10, all Aspire functionality is delivered via NuGet packages (`Aspire.AppHost.Sdk`, `Aspire.Hosting.AppHost`, etc.) that are referenced directly in `.csproj` files.
 
 ### 1.6 — Git (Optional but Recommended)
 
@@ -111,7 +116,7 @@ All prerequisites are satisfied when every row below is checked:
 | Node.js           | `node --version`       | 24.x+            | ☐      |
 | npm               | `npm --version`        | 10.x+            | ☐      |
 | Angular CLI       | `ng version`           | 21.x             | ☐      |
-| .NET Aspire       | `dotnet workload list` | aspire present   | ☐      |
+| .NET Aspire Templates | `dotnet new list aspire` | Templates listed (e.g., `aspire-apphost`) | ☐      |
 
 > **AI Agent:** Only proceed to **[02-solution-structure.md](./02-solution-structure.md)** when ALL required tools pass. If any tool fails, help the user install it first.
 
@@ -122,8 +127,8 @@ All prerequisites are satisfied when every row below is checked:
 | Issue                                | Solution                                                        |
 |--------------------------------------|-----------------------------------------------------------------|
 | `dotnet` command not found           | Install .NET SDK and ensure it's on the system PATH             |
-| `ng` command not found               | Run `npm install -g @angular/cli@21`                            |
-| `ng version` shows wrong version     | Run `npm uninstall -g @angular/cli && npm install -g @angular/cli@21` |
-| `dotnet workload list` empty         | Run `dotnet workload update && dotnet workload install aspire`  |
+| `ng` command not found               | Run `npm install -g @angular/cli` (installs latest version)     |
+| `ng version` shows wrong version     | Run `npm uninstall -g @angular/cli && npm install -g @angular/cli` (installs latest) |
+| Aspire templates not listed           | Run `dotnet new install Aspire.ProjectTemplates` (workload is deprecated in .NET 10+) |
 | Node.js version too old              | Install latest LTS from https://nodejs.org/                     |
 | Permission denied on global npm      | Use `sudo npm install -g` (mac/linux) or run terminal as admin (windows) |

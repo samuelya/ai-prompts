@@ -13,7 +13,7 @@ dotnet new aspire-apphost -n AppHost
 
 **Expected output:** `The template "Aspire App Host" was created successfully.`
 
-> **AI Agent:** If this fails with "template not found", the Aspire workload may not be installed. Run `dotnet workload install aspire` and retry.
+> **AI Agent:** If this fails with "template not found", the Aspire project templates may not be installed. Run `dotnet new install Aspire.ProjectTemplates` and retry. **Do NOT use `dotnet workload install aspire`** — the workload is deprecated in .NET 10+; Aspire now ships entirely as NuGet packages.
 
 ## 6.2 — Overwrite the Project File
 
@@ -153,7 +153,7 @@ dotnet build
 
 | Issue                                        | Solution                                                       |
 |----------------------------------------------|----------------------------------------------------------------|
-| "aspire-apphost" template not found          | Run `dotnet workload install aspire`                           |
+| "aspire-apphost" template not found          | Run `dotnet new install Aspire.ProjectTemplates` (workload is deprecated in .NET 10+) |
 | Build error: project reference not found     | Verify the relative path from `tools/AppHost/` to `src/{{PROJECT_NAME}}.API/` |
 | `Program.cs` generic type error              | Ensure dots in project name are replaced with underscores      |
 | Ports conflict on dashboard                  | Change `{{DASHBOARD_HTTPS_PORT}}` and `{{DASHBOARD_HTTP_PORT}}` |

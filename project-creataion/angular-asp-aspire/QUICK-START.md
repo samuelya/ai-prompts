@@ -9,10 +9,10 @@
 Run all at once — every command must succeed:
 
 ```bash
-dotnet --version      # Must be 10.0.x
-node --version        # Must be v24+
-ng version            # Must be Angular CLI 21.x
-dotnet workload list  # Must include "aspire"
+dotnet --version        # Must be 10.0.x
+node --version          # Must be v24+
+ng version              # Must be latest Angular CLI
+dotnet new list aspire  # Must list aspire-apphost template (if missing: dotnet new install Aspire.ProjectTemplates)
 ```
 
 > **AI Agent:** If any check fails, see [01-prerequisites.md](./01-prerequisites.md) for installation instructions. Do not continue until all pass.

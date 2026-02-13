@@ -37,6 +37,19 @@ After completing each step, provide a brief status update:
 - ⚠️ Any warnings encountered
 - 🔢 What step comes next
 
+### Rule 8: Always Use the Latest Versions — NEVER Downgrade Without Permission
+
+**You MUST always use the highest and latest stable versions of any SDK, tool, package, framework, or CLI unless the user explicitly requests a specific version.** Do NOT silently fall back to, adapt to, or suggest older versions.
+
+- When installing or referencing tools (e.g., .NET SDK, Angular CLI, Node.js, NuGet packages, npm packages), always target the **latest stable release**.
+- If a step guide or instruction references a specific version number that is now outdated, use the **latest available version** instead — do NOT blindly follow the outdated version.
+- **If you believe an older version is necessary** (e.g., due to a compatibility issue), you MUST:
+  1. **Stop** and explain the issue to the user.
+  2. **State which version you want to use** and **why**.
+  3. **Wait for explicit user confirmation** before proceeding with the older version.
+- Never assume the user wants backward compatibility. Always default to the newest version unless told otherwise.
+- When checking prerequisites, verify the user has the **latest stable versions** and suggest upgrades if they are behind.
+
 ---
 
 ## 📋 Variable Collection — What to Ask the User
@@ -185,8 +198,8 @@ The project is fully set up when ALL of the following are true:
 | HTTPS certificate not trusted     | Browser shows certificate warning                              | Run `dotnet dev-certs https --trust`                        |
 | .NET build fails                  | Read `dotnet build` output                                     | Run `dotnet clean && dotnet restore && dotnet build`        |
 | npm install fails                 | Read `npm install` output                                      | Delete `node_modules` + `package-lock.json`, then retry     |
-| Angular CLI not found             | `ng version` returns error                                     | Run `npm install -g @angular/cli@21`                        |
-| Aspire workload missing           | `dotnet workload list` does not show aspire                    | Run `dotnet workload install aspire`                        |
+| Angular CLI not found             | `ng version` returns error                                     | Run `npm install -g @angular/cli` (installs latest version) |
+| Aspire templates missing          | `dotnet new list aspire` shows no results                      | Run `dotnet new install Aspire.ProjectTemplates` (workload is deprecated in .NET 10+) |
 | Service not starting in AppHost   | Check dashboard logs tab                                       | Verify project references and build each project separately |
 
 ---
